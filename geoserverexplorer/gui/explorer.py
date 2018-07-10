@@ -3,8 +3,11 @@
 # (c) 2016 Boundless, http://boundlessgeo.com
 # This code is licensed under the GPL 2.0 license.
 #
+from builtins import str
 import os
-from PyQt4 import QtGui, QtCore
+from qgis.PyQt.QtGui import *
+from qgis.PyQt.QtCore import *
+from qgis.PyQt.QtWidgets import *
 import sip
 from qgis.core import *
 from qgis.gui import *
@@ -15,7 +18,7 @@ from geoserverexplorer.gui.explorertree import ExplorerTreeWidget
 from geoserverexplorer.qgis.utils import UserCanceledOperation
 from qgiscommons2.settings import pluginSetting
 
-class GeoServerExplorer(QtGui.QDockWidget):
+class GeoServerExplorer(QDockWidget):
 
     def __init__(self, parent = None):
         super(GeoServerExplorer, self).__init__(parent)
@@ -25,22 +28,22 @@ class GeoServerExplorer(QtGui.QDockWidget):
     def initGui(self):
         self.progressMaximum = 0
         self.isProgressVisible = False
-        self.setAllowedAreas(QtCore.Qt.LeftDockWidgetArea | QtCore.Qt.RightDockWidgetArea)
-        self.dockWidgetContents = QtGui.QWidget()
+        self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        self.dockWidgetContents = QWidget()
         self.setWindowTitle('GeoServer Explorer')
-        self.splitter = QtGui.QSplitter()
-        self.splitter.setOrientation(QtCore.Qt.Vertical)
-        self.subwidget = QtGui.QWidget()
+        self.splitter = QSplitter()
+        self.splitter.setOrientation(Qt.Vertical)
+        self.subwidget = QWidget()
         self.explorerTree = self.tree = ExplorerTreeWidget(self)
         showToolbar = pluginSetting("ShowToolbar")
-        self.toolbar = QtGui.QToolBar()
-        self.toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
+        self.toolbar = QToolBar()
+        self.toolbar.setToolButtonStyle(Qt.ToolButtonIconOnly)
         self.toolbar.setVisible(showToolbar)
         self.setToolbarActions([])
         self.splitter.addWidget(self.explorerTree)
-        self.log = QtGui.QTextEdit()
-        self.description = QtGui.QWidget()
-        self.descriptionLayout = QtGui.QVBoxLayout()
+        self.log = QTextEdit()
+        self.description = QWidget()
+        self.descriptionLayout = QVBoxLayout()
         self.descriptionLayout.setSpacing(2)
         self.descriptionLayout.setMargin(0)
         self.description.setLayout(self.descriptionLayout)
@@ -49,7 +52,7 @@ class GeoServerExplorer(QtGui.QDockWidget):
         showDescription = pluginSetting("ShowDescription")
         self.description.setVisible(showDescription)
         self.progress = None
-        self.layout = QtGui.QVBoxLayout()
+        self.layout = QVBoxLayout()
         self.layout.setSpacing(2)
         self.layout.setMargin(0)
         self.layout.addWidget(self.toolbar)
@@ -62,19 +65,19 @@ class GeoServerExplorer(QtGui.QDockWidget):
     def dockStateChanged(self, floating):
         if floating:
             self.resize(800, 450)
-            self.splitter.setOrientation(QtCore.Qt.Horizontal)
+            self.splitter.setOrientation(Qt.Horizontal)
         else:
-            self.splitter.setOrientation(QtCore.Qt.Vertical)
+            self.splitter.setOrientation(Qt.Vertical)
 
     def setToolbarActions(self, actions):
         self.toolbar.clear()
         for action in actions:
             if action.icon().isNull():
-                icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/process.png")
+                icon = QIcon(os.path.dirname(__file__) + "/../images/process.png")
                 action.setIcon(icon)
 
         for action in actions:
-            button = QtGui.QPushButton()
+            button = QPushButton()
             button.setIcon(action.icon())
             button.setToolTip(action.text())
             button.setEnabled(action.isEnabled())
@@ -97,7 +100,7 @@ class GeoServerExplorer(QtGui.QDockWidget):
 
     def run(self, command, msg, refresh, *params):
         noerror = True
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         try:
             command(*params)
             for item in refresh:
@@ -109,17 +112,17 @@ class GeoServerExplorer(QtGui.QDockWidget):
                 self.setInfo("Operation <i>" + msg + "</i> correctly executed")
         except UserCanceledOperation:
             pass
-        except Exception, e:
+        except Exception as e:
             s = e.message
-            if not isinstance(s, unicode):
+            if not isinstance(s, str):
                 try:
-                    s = unicode(e.message, errors = "ignore").encode("utf-8")
+                    s = str(e.message, errors = "ignore").encode("utf-8")
                 except TypeError:  # handle ssl.SSLError type error from 2.7.9+
-                    s = unicode(e).encode("utf-8")
+                    s = str(e).encode("utf-8")
             self.setError(s + "\n\n<pre>" + traceback.format_exc() + "</pre>")
             noerror = False
         finally:
-            QtGui.QApplication.restoreOverrideCursor()
+            QApplication.restoreOverrideCursor()
             self.refreshDescription()
 
         return noerror
@@ -139,9 +142,9 @@ class GeoServerExplorer(QtGui.QDockWidget):
         self.progressMaximum = value
         self.isProgressVisible = True
         self.progressMessageBar = config.iface.messageBar().createMessage(msg)
-        self.progress = QtGui.QProgressBar()
+        self.progress = QProgressBar()
         self.progress.setMaximum(self.progressMaximum)
-        self.progress.setAlignment(QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.progress.setAlignment(Qt.AlignLeft|Qt.AlignVCenter)
         self.progressMessageBar.layout().addWidget(self.progress)
         config.iface.messageBar().pushWidget(self.progressMessageBar, QgsMessageBar.INFO)
 
@@ -159,10 +162,10 @@ class GeoServerExplorer(QtGui.QDockWidget):
     def setError(self, msg):
         firstLine = msg.split("\n")[0]
         if self.progressMaximum != 0:
-            QtGui.QMessageBox.critical(self, "Error", firstLine)
+            QMessageBox.critical(self, "Error", firstLine)
         self.resetActivity()
         widget = config.iface.messageBar().createMessage("Error", firstLine)
-        showButton = QtGui.QPushButton(widget)
+        showButton = QPushButton(widget)
         showButton.setText("View more")
         def showMore():
             dlg = QgsMessageOutput.createMessageOutput()
@@ -180,7 +183,7 @@ class GeoServerExplorer(QtGui.QDockWidget):
             self.descriptionLayout.removeItem(item)
             item.widget().close()
         if widget is None:
-            widget = QtGui.QTextBrowser()
+            widget = QTextBrowser()
             widget.setHtml(u'<div style="background-color:#C7DBFC; color:#555555"><h1>Select an item above for contextual description</h1></div><ul>')
 
         self.descriptionLayout.addWidget(widget)

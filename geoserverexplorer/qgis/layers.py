@@ -38,7 +38,7 @@ def getGroups():
         groupName = rel[0]
         if groupName != '':
             groupLayers = rel[1]
-            groups[groupName] = [QgsMapLayerRegistry.instance().mapLayer(layerid) for layerid in groupLayers]
+            groups[groupName] = [QgsProject.instance().mapLayer(layerid) for layerid in groupLayers]
     return groups
 
 

@@ -4,7 +4,7 @@
 # This code is licensed under the GPL 2.0 license.
 #
 import os
-from PyQt4 import QtGui
+from qgis.PyQt import QtGui
 from processing.core.GeoAlgorithm import GeoAlgorithm
 from processing.core.parameters import ParameterString
 from geoserver.catalog import Catalog

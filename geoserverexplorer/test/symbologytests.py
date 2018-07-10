@@ -3,6 +3,7 @@
 # (c) 2016 Boundless, http://boundlessgeo.com
 # This code is licensed under the GPL 2.0 license.
 #
+from builtins import map
 import unittest
 import os
 import sys
@@ -10,7 +11,7 @@ from geoserverexplorer.qgis import layers, catalog
 from geoserverexplorer.qgis.sldadapter import adaptGsToQgs,\
     getGsCompatibleSld
 from qgis.core import *
-from qgis.utils import iface, QGis
+from qgis.utils import iface
 from PyQt4.QtCore import *
 from geoserverexplorer.test import utils
 from geoserverexplorer.test.utils import PT1, DEM, DEM2, PT1JSON, DEMASCII,\
@@ -68,7 +69,7 @@ class SymbologyTests(unittest.TestCase):
 
 def suiteSubset():
     tests = []
-    suite = unittest.TestSuite(map(SymbologyTests, tests))
+    suite = unittest.TestSuite(list(map(SymbologyTests, tests)))
     return suite
 
 def suite():

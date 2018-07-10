@@ -11,7 +11,7 @@ from qgis.gui import *
 from qgis.utils import iface
 from geoserverexplorer.qgis.utils import readTrackedLayers
 from functools import partial
-from PyQt4 import QtCore, QtGui
+from qgis.PyQt import QtCore, QtGui
 from geoserverexplorer.qgis.utils import getTrackingInfo, removeTrackedLayer
 from geoserver.catalog import Catalog
 from geoserverexplorer.qgis.catalog import CatalogWrapper
@@ -31,7 +31,7 @@ def layerAdded(qgislayer):
             return
     except:
         pass #Not all layers have a providerType method
-    catalogs = _explorer.explorerTree.gsItem._catalogs.values()
+    catalogs = list(_explorer.explorerTree.gsItem._catalogs.values())
     for cat in catalogs:
         if cat.gs_base_url in qgislayer.source():
             for layer in cat.get_layers():
@@ -46,7 +46,7 @@ def layerAdded(qgislayer):
                         msg, ok = qgislayer.loadSldStyle(sldfile)
                         if not ok:
                             raise Exception("Could not load style for layer <b>%s</b>" % qgislayer.name())
-                    except Exception, e:
+                    except Exception as e:
                         _explorer.setWarning("Could not set style for layer <b>%s</b>" % qgislayer.name())
                     break
 
@@ -94,8 +94,8 @@ def updatePublishedStyle(layer):
 def connectLayerWasAdded(explorer):
     global _explorer
     _explorer = explorer
-    QgsMapLayerRegistry.instance().layerWasAdded.connect(layerAdded)
+    QgsProject.instance().layerWasAdded.connect(layerAdded)
     readTrackedLayers()
 
 def disconnectLayerWasAdded():
-    QgsMapLayerRegistry.instance().layerWasAdded.disconnect(layerAdded)
+    QgsProject.instance().layerWasAdded.disconnect(layerAdded)

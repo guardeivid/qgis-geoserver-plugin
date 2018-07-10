@@ -3,10 +3,14 @@
 # (c) 2016 Boundless, http://boundlessgeo.com
 # This code is licensed under the GPL 2.0 license.
 #
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
 import httplib2
 from xml.etree.ElementTree import XML
 import xml.etree.ElementTree as ET
-from urlparse import urlparse
+from urllib.parse import urlparse
 from geoserver.catalog import FailedRequestError
 import json
 from geoserverexplorer.geoserver.pki import PKICatalog
@@ -210,7 +214,7 @@ class GwcLayer(object):
                     return array[0][0], array[0][1]
                 else:
                     return None
-            except Exception, e:
+            except Exception as e:
                 raise SeedingStatusParsingError()
             return content
 

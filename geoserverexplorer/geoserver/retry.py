@@ -3,16 +3,19 @@
 # (c) 2016 Boundless, http://boundlessgeo.com
 # This code is licensed under the GPL 2.0 license.
 #
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
 from .basecatalog import BaseCatalog
 import httplib2
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 def retryMethodDecorator(func):
     def decorator(*args, **kwargs):
         try:
             result = func(*args, **kwargs)
-        except Exception, e:
-            if "Errno 10053" in unicode(e):
+        except Exception as e:
+            if "Errno 10053" in str(e):
                 result = func(*args, **kwargs)
             else:
                 raise e

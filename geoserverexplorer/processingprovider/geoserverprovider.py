@@ -3,16 +3,17 @@
 # (c) 2016 Boundless, http://boundlessgeo.com
 # This code is licensed under the GPL 2.0 license.
 #
+from __future__ import absolute_import
 import os
-from PyQt4.QtGui import QIcon
+from qgis.PyQt.QtGui import QIcon
 from processing.core.AlgorithmProvider import AlgorithmProvider
 from processing.core.ProcessingConfig import Setting, ProcessingConfig
-from uploadvector import UploadVector
-from uploadraster import UploadRaster
-from createstyle import CreateStyle
-from createworkspace import CreateWorkspace
-from deleteworkspace import DeleteWorkspace
-from deletedatastore import DeleteDatastore
+from .uploadvector import UploadVector
+from .uploadraster import UploadRaster
+from .createstyle import CreateStyle
+from .createworkspace import CreateWorkspace
+from .deleteworkspace import DeleteWorkspace
+from .deletedatastore import DeleteDatastore
 
 class GeoServerProvider(AlgorithmProvider):
 

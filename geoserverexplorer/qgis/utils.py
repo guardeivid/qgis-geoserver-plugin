@@ -8,7 +8,7 @@ import uuid
 import time
 from qgis.core import *
 from qgis.utils import *
-from PyQt4 import QtCore, QtGui
+from qgis.PyQt import QtCore, QtGui
 from geoserverexplorer.qgis import layers as qgislayers
 from geoserverexplorer.qgis import uri as uri_utils
 import json

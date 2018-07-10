@@ -3,6 +3,8 @@
 # (c) 2016 Boundless, http://boundlessgeo.com
 # This code is licensed under the GPL 2.0 license.
 #
+from __future__ import print_function
+from builtins import map
 import unittest
 import os
 import sys
@@ -47,7 +49,7 @@ class CatalogTests(UtilsTestCase):
         self.assertIsNotNone(self.cat.catalog.get_layer(PT1))
         self.cat.addLayerToProject(PT1, PT1)
         layer = layers.resolveLayer(PT1)
-        QgsMapLayerRegistry.instance().removeMapLayer(layer.id())
+        QgsProject.instance().removeMapLayer(layer.id())
         self.cat.catalog.delete(self.cat.catalog.get_layer(PT1), recurse=True)
         #TODO: more checking to ensure that the layer in the project is correct
 
@@ -79,11 +81,11 @@ class CatalogTests(UtilsTestCase):
         # Check uris
         self.assertNotEqual(layer.publicSource(), layerb.publicSource())
 
-        self.assertNotEqual(QgsMapLayerRegistry.instance().mapLayersByName(layer.name()), [])
-        self.assertNotEqual(QgsMapLayerRegistry.instance().mapLayersByName(layerb.name()), [])
+        self.assertNotEqual(QgsProject.instance().mapLayersByName(layer.name()), [])
+        self.assertNotEqual(QgsProject.instance().mapLayersByName(layerb.name()), [])
 
-        QgsMapLayerRegistry.instance().removeMapLayer(layer.id())
-        QgsMapLayerRegistry.instance().removeMapLayer(layerb.id())
+        QgsProject.instance().removeMapLayer(layer.id())
+        QgsProject.instance().removeMapLayer(layerb.id())
         self.cat.catalog.delete(self.cat.catalog.get_layer(pt1), recurse=True)
         self.cat.catalog.delete(self.cat.catalog.get_layer(pt1b), recurse=True)
 
@@ -93,7 +95,7 @@ class CatalogTests(UtilsTestCase):
         self.assertIsNotNone(self.cat.catalog.get_layer(DEM))
         self.cat.addLayerToProject(DEM, DEM2)
         layer = layers.resolveLayer(DEM2)
-        QgsMapLayerRegistry.instance().removeMapLayer(layer.id())
+        QgsProject.instance().removeMapLayer(layer.id())
         self.cat.catalog.delete(self.cat.catalog.get_layer(DEM), recurse = True)
 
     def testVectorLayerUncompatibleFormat(self):
@@ -153,7 +155,8 @@ class CatalogTests(UtilsTestCase):
 
     def testPreuploadVectorHook(self):
         if not catalog.processingOk:
-            print 'skipping testPreuploadVectorHook, processing not installed'
+            # fix_print_with_import
+            print('skipping testPreuploadVectorHook, processing not installed')
             return
         oldHookFile = pluginSetting("PreuploadVectorHook")
         hookFile = os.path.join(os.path.dirname(__file__), "resources", "vector_hook.py")
@@ -169,7 +172,7 @@ class CatalogTests(UtilsTestCase):
             self.cat.addLayerToProject(HOOK)
             layer = layers.resolveLayer(HOOK)
             self.assertEqual(1, layer.featureCount())
-            QgsMapLayerRegistry.instance().removeMapLayer(layer.id())
+            QgsProject.instance().removeMapLayer(layer.id())
         finally:
             setPluginSetting("PreuploadVectorHook", oldHookFile)
             self.cat.catalog.delete(self.cat.catalog.get_layer(HOOK), recurse = True)
@@ -192,7 +195,7 @@ class CatalogTests(UtilsTestCase):
 
 def suiteSubset():
     tests = ['testPreuploadVectorHook']
-    suite = unittest.TestSuite(map(CatalogTests, tests))
+    suite = unittest.TestSuite(list(map(CatalogTests, tests)))
     return suite
 
 def suite():

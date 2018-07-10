@@ -6,12 +6,10 @@
 from .basecatalog import BaseCatalog
 import httplib2
 from gsimporter.client import Client, _Client
-from qgis.core import QGis
 
 class PKICatalog(BaseCatalog):
 
     def __init__(self, service_url, key, cert, ca_cert):
-        assert QGis.QGIS_VERSION_INT < 21200, "For QGIS > 2.12 we want to use AuthCatalog!"
         self.key = key
         self.cert = cert
         self.service_url = service_url

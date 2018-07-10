@@ -3,6 +3,7 @@
 # (c) 2016 Boundless, http://boundlessgeo.com
 # This code is licensed under the GPL 2.0 license.
 #
+from builtins import map
 import unittest
 import os
 import sys
@@ -140,7 +141,7 @@ class DeleteTests(ExplorerIntegrationTest):
 
 def suiteSubset():
     tests = ['testDeleteLayerAndStyle']
-    suite = unittest.TestSuite(map(DeleteTests, tests))
+    suite = unittest.TestSuite(list(map(DeleteTests, tests)))
     return suite
 
 def suite():

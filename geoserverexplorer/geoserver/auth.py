@@ -59,7 +59,7 @@ class AuthCatalog(BaseCatalog):
         def parse_or_raise(xml):
             try:
                 return XML(xml)
-            except (ExpatError, SyntaxError), e:
+            except (ExpatError, SyntaxError) as e:
                 msg = "GeoServer gave non-XML response for [GET %s]: %s"
                 msg = msg % (rest_url, xml)
                 raise Exception(msg, e)

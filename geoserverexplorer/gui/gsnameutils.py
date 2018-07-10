@@ -7,8 +7,10 @@
 Utilities to create a user-defined name for a GeoServer component, with optional
 validation.
 """
+from __future__ import print_function
 
-from PyQt4 import QtGui, QtCore
+from builtins import str
+from qgis.PyQt import QtGui, QtCore, QtWidgets
 
 APP = None
 if __name__ == '__main__':
@@ -58,7 +60,7 @@ def xmlNameRegexMsg():
 
 
 # noinspection PyAttributeOutsideInit, PyPep8Naming
-class GSNameWidget(QtGui.QWidget):
+class GSNameWidget(QtWidgets.QWidget):
 
     nameValidityChanged = QtCore.pyqtSignal(bool)  # pragma: no cover
     invalidTextChanged = QtCore.pyqtSignal(str)  # pragma: no cover
@@ -134,7 +136,7 @@ class GSNameWidget(QtGui.QWidget):
         return self.valid
 
     def definedName(self):
-        return unicode(self.nameBox.lineEdit().text()) if self.valid else None
+        return str(self.nameBox.lineEdit().text()) if self.valid else None
 
     def overwritingName(self):
         return self.overwriting
@@ -247,11 +249,13 @@ if __name__ == '__main__':
 
         @QtCore.pyqtSlot(bool)
         def valididtyChanged(self, valid):
-            print "valididty changed: {0}".format(valid)
+            # fix_print_with_import
+            print("valididty changed: {0}".format(valid))
 
         @QtCore.pyqtSlot(bool)
         def overwritingChanged(self, overwrite):
-            print "overwriting changed: {0}".format(overwrite)
+            # fix_print_with_import
+            print("overwriting changed: {0}".format(overwrite))
 
     bobj = BounceObj()
     gdlg = GSNameWidget(
@@ -291,11 +295,13 @@ if __name__ == '__main__':
 
         @QtCore.pyqtSlot(bool)
         def valididtyChanged(self, valid):
-            print "valididty changed: {0}".format(valid)
+            # fix_print_with_import
+            print("valididty changed: {0}".format(valid))
 
         @QtCore.pyqtSlot(bool)
         def overwritingChanged(self, overwrite):
-            print "overwriting changed: {0}".format(overwrite)
+            # fix_print_with_import
+            print("overwriting changed: {0}".format(overwrite))
 
     bobj = BounceObj()
     gdlg = GSNameWidget(

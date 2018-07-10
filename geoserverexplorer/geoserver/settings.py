@@ -3,10 +3,14 @@
 # (c) 2016 Boundless, http://boundlessgeo.com
 # This code is licensed under the GPL 2.0 license.
 #
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
 import httplib2
 from xml.etree.ElementTree import XML
 import xml.etree.ElementTree as ET
-from urlparse import urlparse
+from urllib.parse import urlparse
 from geoserver.support import url
 from geoserverexplorer.geoserver.pki import PKICatalog
 from geoserverexplorer.geoserver.auth import AuthCatalog
@@ -71,10 +75,10 @@ class Settings(object):
                     if subelement is None:
                         subelement = ET.SubElement(element, name)
                     subsubelement = ET.SubElement(subelement, subname)
-                    subsubelement.text = unicode(value)
+                    subsubelement.text = str(value)
                 else:
                     subelement = ET.SubElement(element, name)
-                    subelement.text = unicode(value)
+                    subelement.text = str(value)
 
         xml = ET.tostring(root)
         settings_url = url(self.catalog.service_url, ['settings.xml'])

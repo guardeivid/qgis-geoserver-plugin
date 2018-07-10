@@ -16,6 +16,7 @@
 *                                                                         *
 ***************************************************************************
 """
+from builtins import str
 from datetime import datetime, timedelta
 
 __author__ = 'Alessandro Pasotti'
@@ -67,7 +68,7 @@ class BaseCatalog(Catalog):
     def get_layers(self, resource=None):
         """Prefix the layer name with ws name"""
         # Original code from gsconfig
-        if isinstance(resource, basestring):
+        if isinstance(resource, str):
             resource = self.get_resource(resource)
 
         layers_url = url(self.service_url, ["layers.json"])
@@ -95,7 +96,7 @@ class BaseCatalog(Catalog):
                 layers[l.name] = [l]
         # Prefix all names
         noAscii = False
-        for name, ls in layers.items():
+        for name, ls in list(layers.items()):
             try:
                 if len(ls) == 1:
                     l = ls[0]
@@ -126,9 +127,9 @@ class BaseCatalog(Catalog):
 
         def parse_or_raise(xml):
             try:
-                xml = unicode(xml, errors="ignore").decode("utf-8", errors="ignore")
+                xml = str(xml, errors="ignore").decode("utf-8", errors="ignore")
                 return XML(xml)
-            except (ExpatError, SyntaxError), e:
+            except (ExpatError, SyntaxError) as e:
                 msg = "GeoServer gave non-XML response for [GET %s]: %s"
                 msg = msg % (rest_url, xml)
                 raise Exception(msg, e)

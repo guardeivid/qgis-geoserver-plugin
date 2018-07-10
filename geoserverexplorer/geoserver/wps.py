@@ -3,12 +3,15 @@
 # (c) 2016 Boundless, http://boundlessgeo.com
 # This code is licensed under the GPL 2.0 license.
 #
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 import httplib2
 from xml.etree.ElementTree import XML
-from urlparse import urlparse
+from urllib.parse import urlparse
 from geoserverexplorer.geoserver.pki import PKICatalog
 
-class Wps():
+class Wps(object):
 
     def __init__(self, catalog):
         self.catalog = catalog

@@ -3,14 +3,18 @@
 # (c) 2016 Boundless, http://boundlessgeo.com
 # This code is licensed under the GPL 2.0 license.
 #
+from __future__ import absolute_import
+from builtins import object
 import os
-import config
+from . import config
 from geoserverexplorer.gui.explorer import GeoServerExplorer
 from geoserverexplorer.geoserver import pem
-from PyQt4 import QtGui, QtCore
+from qgis.PyQt.QtGui import *
+from qgis.PyQt.QtCore import *
+from qgis.PyQt.QtWidgets import *
 try:
     from processing.core.Processing import Processing
-    from processingprovider.geoserverprovider import GeoServerProvider
+    from .processingprovider.geoserverprovider import GeoServerProvider
     processingOk = True
 except:
     processingOk = False
@@ -20,7 +24,7 @@ from qgiscommons2.settings import pluginSetting, setPluginSetting, readSettings
 from qgiscommons2.gui import addHelpMenu, removeHelpMenu, addAboutMenu, removeAboutMenu
 from qgiscommons2.gui.settings import addSettingsMenu, removeSettingsMenu
 
-class GeoServerExplorerPlugin:
+class GeoServerExplorerPlugin(object):
 
     def __init__(self, iface):
         self.iface = iface
@@ -58,13 +62,13 @@ class GeoServerExplorerPlugin:
             pass
 
     def initGui(self):
-        icon = QtGui.QIcon(os.path.dirname(__file__) + "/images/geoserver.png")
-        self.explorerAction = QtGui.QAction(icon, "GeoServer Explorer", self.iface.mainWindow())
+        icon = QIcon(os.path.dirname(__file__) + "/images/geoserver.png")
+        self.explorerAction = QAction(icon, "GeoServer Explorer", self.iface.mainWindow())
         self.explorerAction.triggered.connect(self.openExplorer)
         self.iface.addPluginToWebMenu(u"GeoServer", self.explorerAction)
 
         self.explorer = GeoServerExplorer()
-        self.iface.addDockWidget(QtCore.Qt.RightDockWidgetArea, self.explorer)
+        self.iface.addDockWidget(Qt.RightDockWidgetArea, self.explorer)
         if not pluginSetting("ExplorerVisible"):
             self.explorer.hide()
         self.explorer.visibilityChanged.connect(self._explorerVisibilityChanged)

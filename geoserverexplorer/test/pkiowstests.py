@@ -3,10 +3,15 @@
 # (c) 2016 Boundless, http://boundlessgeo.com
 # This code is licensed under the GPL 2.0 license.
 #
+from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import map
+from builtins import str
 import unittest
 from qgis.core import *
 import sys
-import urllib
+import urllib.request, urllib.parse, urllib.error
 from geoserverexplorer.test import utils
 
 
@@ -41,7 +46,7 @@ class PKIOWSTests(unittest.TestCase):
             'authcfg':  utils.AUTHCFGID
         }
         uri = 'https://'+utils.geoserverLocationSsh()+'/geoserver/wfs?' + \
-              urllib.unquote(urllib.urlencode(params))
+              urllib.parse.unquote(urllib.parse.urlencode(params))
 
         vlayer = QgsVectorLayer(uri, "states", "WFS")
         self.assertTrue(vlayer.isValid())
@@ -60,7 +65,8 @@ class PKIOWSTests(unittest.TestCase):
         quri.setParam("url",
                       'https://'+utils.geoserverLocationSsh()+'/geoserver/wms')
 
-        print str(quri.encodedUri())
+        # fix_print_with_import
+        print(str(quri.encodedUri()))
 
         rlayer = QgsRasterLayer(str(quri.encodedUri()), 'states', 'wms')
         self.assertTrue(rlayer.isValid())
@@ -71,7 +77,7 @@ class PKIOWSTests(unittest.TestCase):
 
 def suiteSubset():
     tests = ['testOpenWFSLayer']
-    suite = unittest.TestSuite(map(PKIOWSTests, tests))
+    suite = unittest.TestSuite(list(map(PKIOWSTests, tests)))
     return suite
 
 

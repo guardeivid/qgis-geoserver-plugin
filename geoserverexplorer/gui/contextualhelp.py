@@ -8,13 +8,13 @@ Contextual help components for use in dialogs, etc.
 """
 
 import os
-from PyQt4 import QtGui, QtCore
+from qgis.PyQt import QtGui, QtCore, QtWidgets
 
 
 # noinspection PyAttributeOutsideInit, PyPep8Naming
-class InfoIcon(QtGui.QLabel):
+class InfoIcon(QtWidgets.QLabel):
     def __init__(self, tip, parent=None):
-        QtGui.QLabel.__init__(self, parent)
+        QtWidgets.QLabel.__init__(self, parent)
         self.tiptxt = tip
         self.setSizePolicy(QtGui.QSizePolicy.Fixed,
                            QtGui.QSizePolicy.Fixed)
