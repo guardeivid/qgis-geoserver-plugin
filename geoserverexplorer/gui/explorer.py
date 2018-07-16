@@ -113,12 +113,7 @@ class GeoServerExplorer(QDockWidget):
         except UserCanceledOperation:
             pass
         except Exception as e:
-            s = e.message
-            if not isinstance(s, str):
-                try:
-                    s = str(e.message, errors = "ignore").encode("utf-8")
-                except TypeError:  # handle ssl.SSLError type error from 2.7.9+
-                    s = str(e).encode("utf-8")
+            s = str(e)            
             self.setError(s + "\n\n<pre>" + traceback.format_exc() + "</pre>")
             noerror = False
         finally:
@@ -146,17 +141,17 @@ class GeoServerExplorer(QDockWidget):
         self.progress.setMaximum(self.progressMaximum)
         self.progress.setAlignment(Qt.AlignLeft|Qt.AlignVCenter)
         self.progressMessageBar.layout().addWidget(self.progress)
-        config.iface.messageBar().pushWidget(self.progressMessageBar, QgsMessageBar.INFO)
+        config.iface.messageBar().pushWidget(self.progressMessageBar, Qgis.Info)
 
     def setInfo(self, msg):
         config.iface.messageBar().popWidget()
         config.iface.messageBar().pushMessage("Info", msg,
-                                              level = QgsMessageBar.INFO,
+                                              level = Qgis.Info,
                                               duration = 10)
 
     def setWarning(self, msg):
         config.iface.messageBar().pushMessage("Warning", msg,
-                                              level = QgsMessageBar.WARNING,
+                                              level = Qgis.Warning,
                                               duration = 10)
 
     def setError(self, msg):
@@ -174,7 +169,7 @@ class GeoServerExplorer(QDockWidget):
             dlg.showMessage()
         showButton.pressed.connect(showMore)
         widget.layout().addWidget(showButton)
-        config.iface.messageBar().pushWidget(widget, QgsMessageBar.CRITICAL,
+        config.iface.messageBar().pushWidget(widget, Qgis.Critical,
                                              duration = 10)
 
     def setDescriptionWidget(self, widget = None):

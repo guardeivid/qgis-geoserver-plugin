@@ -126,8 +126,7 @@ class BaseCatalog(Catalog):
             return cached_response is not None and datetime.now() - cached_response[0] < timedelta(seconds=5)
 
         def parse_or_raise(xml):
-            try:
-                xml = str(xml, errors="ignore").decode("utf-8", errors="ignore")
+            try:                
                 return XML(xml)
             except (ExpatError, SyntaxError) as e:
                 msg = "GeoServer gave non-XML response for [GET %s]: %s"
