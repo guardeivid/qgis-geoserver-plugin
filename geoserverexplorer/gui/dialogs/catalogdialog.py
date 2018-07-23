@@ -176,7 +176,7 @@ class DefineCatalogDialog(QDialog):
 
 
     def okPressed(self):
-        self.url = str(self.urlBox.text().strip('/')     + '/rest')
+        self.url = str(self.urlBox.text().strip('/') + '/rest')
         if not self.url.startswith('http'):
             self.url = 'http://%s' % self.url
         if self.tabWidget.currentIndex() == 0:

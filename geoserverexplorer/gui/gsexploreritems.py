@@ -3,7 +3,7 @@
 # (c) 2016 Boundless, http://boundlessgeo.com
 # This code is licensed under the GPL 2.0 license.
 #
-from __future__ import absolute_import
+
 from builtins import str
 from builtins import range
 import os
@@ -27,8 +27,6 @@ from .dialogs.workspacedialog import DefineWorkspaceDialog
 from geoserver.layergroup import UnsavedLayerGroup
 from geoserver.catalog import FailedRequestError
 import traceback
-from geoserverexplorer.geoserver.wps import Wps
-from .dialogs.crsdialog import CrsSelectionDialog
 from geoserverexplorer.geoserver.settings import Settings
 from geoserverexplorer.gui.parametereditor import ParameterEditor
 from .dialogs.sldeditor import SldEditorDialog
@@ -44,7 +42,7 @@ from geoserverexplorer.geoserver.pki import PKICatalog
 from _ssl import SSLError
 from geoserverexplorer.geoserver import pem
 from geoserverexplorer.gui.gsoperations import *
-from geoserverexplorer.geoserver.retry import RetryCatalog
+from geoserverexplorer.geoserver.basecatalog import BaseCatalog
 from geoserverexplorer.geoserver.auth import AuthCatalog
 from geoserverexplorer.gui.gsoperations import addDraggedStyleToLayer
 import xml.dom.minidom
@@ -111,19 +109,25 @@ class GsTreeItem(TreeItem):
                     for subidx in range(subitem.childCount()):
                         subsubitem = subitem.child(subidx)
                         elements.insert(0, subsubitem.element)
-        toUpdate = set(item.parent() for item in selected)
+        toUpdate = []
+        for item in selected:
+            if item.parent() not in toUpdate:
+                toUpdate.append(item.parent())    
         progress = 0
         dependent = self.getDependentElements(elements, tree)
         if dependent:
             depdlg = DeleteDependentsDialog(dependent)
             if not depdlg.exec_():
                 return
-            toDelete = set()
+            toDelete = []
             for e in dependent:
                 items = tree.findAllItems(e);
-                toUpdate.update(set(item.parent() for item in items))
-                toDelete.update(items)
-            toUpdate = toUpdate - toDelete
+                for item in items:
+                    if item.parent() not in toUpdate:
+                        toUpdate.append(item.parent())
+                    if item not in toDelete:
+                        toDelete.append(item)
+            toUpdate = [item for item in toUpdate if item not in toDelete]
         elif not confirmDelete():
             return
         deleteStyle = pluginSetting("DeleteStyle")
@@ -131,19 +135,23 @@ class GsTreeItem(TreeItem):
 
         elements[0:0] = dependent
         if recurse:
-            toUpdate.update(workspacesToUpdate)
+            for ws in workspacesToUpdate:
+                if ws not in toUpdate:
+                    toUpdate.append(ws) 
         if deleteStyle:
             elements.extend(uniqueStyles)
-            stylesEntriesToUpdate = set()
+            stylesEntriesToUpdate = []
             for e in uniqueStyles:
                 items = tree.findAllItems(e);
                 for item in items:
                     #the item representing the layer we are deleting will be here, but we have to ignore it
                     #and update only the "styles" item
-                    if isinstance(item.parent(), GsStylesItem):
-                        stylesEntriesToUpdate.add(item.parent())
+                    if isinstance(item.parent(), GsStylesItem) and item.parent() not in stylesEntriesToUpdate:
+                        stylesEntriesToUpdate.append(item.parent())
                         break
-            toUpdate.update(stylesEntriesToUpdate)
+            for styleEntry in stylesEntriesToUpdate:
+                if styleEntry not in toUpdate:
+                    toUpdate.append(ws) 
         explorer.setProgressMaximum(len(elements), "Deleting elements")
         for progress, element in enumerate(elements):
             explorer.setProgress(progress)
@@ -171,7 +179,9 @@ class GsTreeItem(TreeItem):
                         styles = [style for style in styles if style.name != element.name]
                         layer.styles = styles
                         element.catalog.save(layer)
-                        toUpdate.add(tree.findAllItems(layer)[0])
+                        item = tree.findAllItems(layer)[0]
+                        if item not in toUpdate:
+                            toUpdate.update()
                 element.catalog.delete(element, recurse = recurse, purge = True)
             except:
                 pass
@@ -295,7 +305,7 @@ class GsCatalogsItem(GsTreeItem):
                 elif dlg.certfile is not None:
                     cat = PKICatalog(dlg.url, dlg.keyfile, dlg.certfile, dlg.cafile)
                 else:
-                    cat = RetryCatalog(dlg.url, dlg.username, dlg.password)
+                    cat = BaseCatalog(dlg.url, dlg.username, dlg.password)
                 cat.authid = dlg.authid
                 v = cat.gsversion()
                 try:
@@ -352,7 +362,7 @@ class GsLayersItem(GsTreeItem):
                     layerItem = GsLayerItem(layer)
                 except:
                     config.iface.messageBar().pushMessage("Warning", "Layers %s could not be added" % layer.name,
-                      level = QgsMessageBar.WARNING,
+                      level = Qgis.Warning,
                       duration = 10)
                 layerItem.populate()
                 self.addChild(layerItem)
@@ -515,29 +525,18 @@ class GsCatalogItem(GsTreeItem):
                                           QLineEdit.Password)
                 if not ok:
                     raise UserCanceledOperation()
-                self.catalog = RetryCatalog(url, username, password)
+                self.catalog = BaseCatalog(url, username, password)
             self.catalog.authid = authid
             QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         try:
-            dlg = QProgressDialog("Retrieving catalog information", None, 0, 0  , config.iface.mainWindow())
-            # Avoid the modal dialog to block the master password request dialog.
-            #dlg.setWindowModality(Qt.WindowModal);
-            dlg.setMinimumDuration(1000)
-            dlg.setMaximum(100)
-            dlg.setValue(0)
-            dlg.setMaximum(0)
-            dlg.setCancelButton(None)
-            #dlg.showNormal()
-            QApplication.processEvents()
             self._populate()
         except Exception as e:
             if catalogIsNone:
                 self.catalog = None
             var = traceback.format_exc()
-            raise Exception(var)
+            raise Exception("Error while trying to connect to catalog:\n" + var)
         finally:
             self.element = self.catalog
-            dlg.reset()
 
     def _populate(self):
         self.isConnected = False
@@ -623,7 +622,7 @@ class GsCatalogItem(GsTreeItem):
             elif getattr(dlg, 'certfile', False):
                 self.catalog = PKICatalog(dlg.url, dlg.keyfile, dlg.certfile, dlg.cafile)
             elif dlg.username and dlg.password:
-                self.catalog = RetryCatalog(dlg.url, dlg.username, dlg.password)
+                self.catalog = BaseCatalog(dlg.url, dlg.username, dlg.password)
             self.catalog.authid = dlg.authid
             if self.name != dlg.name:
                 if self.name in explorer.catalogs():
@@ -655,7 +654,7 @@ class GsCatalogItem(GsTreeItem):
         settings.endGroup();
         parent = self.parent()
         parent.takeChild(self.parent().indexOfChild(self))
-        tree.setItemSelected(parent, True)
+        tree.setCurrentItem(parent)
         tree.treeItemClicked(parent, 0)
 
 
@@ -779,11 +778,10 @@ class GsLayerItem(GsTreeItem):
                 r.abstract = text
                 explorer.run(self.catalog.save, "Update layer abstract", [], r)
         elif actionName == 'modify:srs':
-            dlg = CrsSelectionDialog()
-            dlg.exec_()
-            if dlg.authid is not None:
+            dlg = QgsProjectionSelectionDialog()
+            if dlg.exec_():
                 r = self.element.resource
-                r.dirty['srs'] = str(dlg.authid)
+                r.dirty['srs'] = str(dlg.crs().authid())
                 explorer.run(self.catalog.save, "Update layer srs", [], r)
         else:
             TreeItem.linkClicked(self, tree, explorer, url)
@@ -885,9 +883,9 @@ class GsLayerItem(GsTreeItem):
 
     def moveLayerDownInGroup(self, explorer):
         group = self.parent().element
-        layers = group.layers
+        layers = [self.catalog.get_namespaced_name(ln) for ln in group.layers]
         styles = group.styles
-        idx = group.layers.index(self.element.name)
+        idx = layers.index(self.element.name)
         tmp = layers [idx + 1]
         layers[idx + 1] = layers[idx]
         layers[idx] = tmp
@@ -902,9 +900,9 @@ class GsLayerItem(GsTreeItem):
 
     def moveLayerToBackInGroup(self, explorer):
         group = self.parent().element
-        layers = group.layers
+        layers = [self.catalog.get_namespaced_name(ln) for ln in group.layers]
         styles = group.styles
-        idx = group.layers.index(self.element.name)
+        idx = layers.index(self.element.name)
         tmp = layers[idx]
         del layers[idx]
         layers.insert(0, tmp)
@@ -919,9 +917,9 @@ class GsLayerItem(GsTreeItem):
 
     def moveLayerToFrontInGroup(self, explorer):
         group = self.parent().element
-        layers = group.layers
+        layers = [self.catalog.get_namespaced_name(ln) for ln in group.layers]
         styles = group.styles
-        idx = group.layers.index(self.element.name)
+        idx = layers.index(self.element.name)
         tmp = layers[idx]
         del layers[idx]
         layers.append(tmp)
@@ -936,9 +934,9 @@ class GsLayerItem(GsTreeItem):
 
     def moveLayerUpInGroup(self, explorer):
         group = self.parent().element
-        layers = group.layers
+        layers = [self.catalog.get_namespaced_name(ln) for ln in group.layers]
         styles = group.styles
-        idx = group.layers.index(self.element.name)
+        idx = layers.index(self.element.name)
         tmp = layers [idx - 1]
         layers[idx - 1] = layers[idx]
         layers[idx] = tmp
@@ -1072,6 +1070,7 @@ class GsGroupItem(GsTreeItem):
 
 class GsStyleItem(GsTreeItem):
     def __init__(self, style, isDefault):
+        self.style = style
         icon = QIcon(os.path.dirname(__file__) + "/../images/style.png")
         name = style.name if not isDefault else style.name + " [default style]"
         GsTreeItem.__init__(self, style, icon, name)
@@ -1145,12 +1144,13 @@ class GsStyleItem(GsTreeItem):
             if not hasattr(gslayer.resource, "attributes"):
                 QMessageBox.warning(explorer, "Edit style", "Editing raster layer styles is currently not supported")
                 return
-        sld = self.element.sld_body
+        sld = self.element.sld_body.decode()
         try:
             _sld = "\n".join([line for line in
-                              xml.dom.minidom.parseString(self.style.sld_body).toprettyxml().splitlines() if line.strip()])
+                              xml.dom.minidom.parseString(sld).toprettyxml().splitlines() if line.strip()])
         except:
             self._showSldParsingError()
+            return
         sld = adaptGsToQgs(sld)
         sldfile = tempFilename("sld")
         with open(sldfile, 'w') as f:
@@ -1175,7 +1175,7 @@ class GsStyleItem(GsTreeItem):
 
     def _showSldParsingError(self):
         config.iface.messageBar().pushMessage("Warning", "Style is not stored as XML and cannot be edited",
-                                              level = QgsMessageBar.WARNING,
+                                              level = Qgis.Warning,
                                               duration = 10)
 
     def editSLD(self, tree, explorer):
@@ -1183,6 +1183,7 @@ class GsStyleItem(GsTreeItem):
             dlg = SldEditorDialog(self.element, explorer)
             dlg.exec_()
         except:
+            raise
             self._showSldParsingError()
 
     def deleteStyle(self, tree, explorer):
@@ -1240,7 +1241,7 @@ class GsWorkspaceItem(GsTreeItem):
         self.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsDropEnabled)
 
     def populate(self):
-        stores = self.element.catalog.get_stores(workspace=self.element)
+        stores = self.element.catalog.get_stores(workspaces=self.element)
         nonAscii = False
         for store in stores:
             storeItem = GsStoreItem(store)
@@ -1253,7 +1254,7 @@ class GsWorkspaceItem(GsTreeItem):
 
         if nonAscii:
             config.iface.messageBar().pushMessage("Warning", "Some datasores contain non-ascii characters and could not be loaded",
-                                  level = QgsMessageBar.WARNING,
+                                  level = Qgis.Warning,
                                   duration = 10)
 
 
@@ -1300,7 +1301,7 @@ class GsWorkspaceItem(GsTreeItem):
                         wsitem = item
                         break
 
-            tree.setItemSelected(wsitem, True)
+            tree.setCurrentItem(wsitem)
             tree.treeItemClicked(wsitem, 0)
             # all stores and other workspaces collapse
             wsitem.setExpanded(expanded)

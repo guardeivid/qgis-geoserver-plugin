@@ -115,13 +115,13 @@ def adaptQgsToGs(sld, layer):
         sld = sld.replace(arr, '<WellKnownName>'+policeValue+'#'+hex(int(markerIndexValue))+'</WellKnownName>')
         
     icons = []
-    renderer = layer.rendererV2()
-    if isinstance(renderer, QgsSingleSymbolRendererV2):
+    renderer = layer.renderer()
+    if isinstance(renderer, QgsSingleSymbolRenderer):
         icons = getReadyToUploadSvgIcons(renderer.symbol())
-    elif isinstance(renderer, QgsCategorizedSymbolRendererV2):
+    elif isinstance(renderer, QgsCategorizedSymbolRenderer):
         for cat in renderer.categories():
             icons.extend(getReadyToUploadSvgIcons(cat.symbol()))
-    elif isinstance(renderer, QgsGraduatedSymbolRendererV2):
+    elif isinstance(renderer, QgsGraduatedSymbolRenderer):
         for ran in renderer.ranges():
             icons.extend(getReadyToUploadSvgIcons(ran.symbol()))
 
@@ -140,7 +140,7 @@ def getReadyToUploadSvgIcons(symbol):
     icons = []
     for i in range(symbol.symbolLayerCount()):
         sl = symbol.symbolLayer(i)
-        if isinstance(sl, QgsSvgMarkerSymbolLayerV2):
+        if isinstance(sl, QgsSvgMarkerSymbolLayer):
             props = sl.properties()
             with open(sl.path()) as f:
                 svg = "".join(f.readlines())
@@ -162,7 +162,7 @@ def getReadyToUploadSvgIcons(symbol):
             filename, ext = os.path.splitext(basename)
             propsHash = hash(frozenset(list(props.items())))
             icons.append ([sl.svgFilePath(), "%s_%s%s" % (filename, propsHash, ext), svg])
-        elif isinstance(sl, QgsMarkerLineSymbolLayerV2):
+        elif isinstance(sl, QgsMarkerLineSymbolLayer):
             return getReadyToUploadSvgIcons(sl.subSymbol())
     return icons
 

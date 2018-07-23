@@ -3,9 +3,7 @@
 # (c) 2016 Boundless, http://boundlessgeo.com
 # This code is licensed under the GPL 2.0 license.
 #
-from __future__ import print_function
-from future import standard_library
-standard_library.install_aliases()
+
 from builtins import map
 from builtins import str
 import unittest

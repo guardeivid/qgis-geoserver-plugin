@@ -49,9 +49,7 @@ def getGroups():
                 item.toggleChildren()
                 self.layersTree.addTopLevelItem(item)'''
     return groups
-
-
-
+    
     rels = config.iface.legendInterface().groupLayerRelationship()
     for rel in rels:
         groupName = rel[0]

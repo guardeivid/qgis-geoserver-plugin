@@ -3,15 +3,14 @@
 # (c) 2016 Boundless, http://boundlessgeo.com
 # This code is licensed under the GPL 2.0 license.
 #
-from future import standard_library
-standard_library.install_aliases()
+
 from builtins import str
 from builtins import object
 import httplib2
 from xml.etree.ElementTree import XML
 import xml.etree.ElementTree as ET
 from urllib.parse import urlparse
-from geoserver.support import url
+from geoserver.support import build_url
 from geoserverexplorer.geoserver.pki import PKICatalog
 from geoserverexplorer.geoserver.auth import AuthCatalog
 
@@ -43,7 +42,7 @@ class Settings(object):
 
     def settings(self):
         settings = {}
-        settings_url = url(self.catalog.service_url, ['settings.xml'])
+        settings_url = build_url(self.catalog.service_url, ['settings.xml'])
         headers, response = self.http.request(settings_url, 'GET')
         if headers.status != 200: raise Exception('Settings listing failed - %s, %s' %
                                                  (headers,response))
@@ -81,7 +80,7 @@ class Settings(object):
                     subelement.text = str(value)
 
         xml = ET.tostring(root)
-        settings_url = url(self.catalog.service_url, ['settings.xml'])
+        settings_url = build_url(self.catalog.service_url, ['settings.xml'])
         headers = {'Content-type': 'text/xml'}
         headers, response = self.http.request(settings_url, 'PUT', xml, headers = headers)
         if headers.status != 200: raise Exception('Settings update failed - %s, %s' %

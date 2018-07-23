@@ -36,8 +36,6 @@ class ExplorerIntegrationTest(unittest.TestCase):
         cls.explorer.explorerTree.gsItem.addChild(cls.catalogItem)
         cls.catalogItem.populate()
         cls.tree = cls.explorer.tree
-        # @TODO - make tests pass using importer
-        cls.useRestApi = setPluginSetting("UseRestApi", True)
         projectFile = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "test.qgs")
         iface.addProject(projectFile)
 

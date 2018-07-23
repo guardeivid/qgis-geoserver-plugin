@@ -3,8 +3,7 @@
 # (c) 2016 Boundless, http://boundlessgeo.com
 # This code is licensed under the GPL 2.0 license.
 #
-from future import standard_library
-standard_library.install_aliases()
+
 import urllib.request, urllib.parse, urllib.error
 from qgis.core import *
 from geoserver.layer import Layer
@@ -36,11 +35,10 @@ def addAuth(_params, catalog):
 def layerUri(layer):
 
     def _get_namespaced_name(ws_name, layer_name):
-        """Prefix ws name in case it is not alreay there"""
+        """Prefix ws name in case it is not already there"""
         if layer_name.find(':') != -1:
             return layer_name
         return ws_name + ":" + layer_name
-
 
     resource = layer.resource
     catalog = layer.catalog
@@ -53,12 +51,12 @@ def layerUri(layer):
             'SRSNAME': resource.projection,
         }
         addAuth(params, catalog)
-        uri = layer.catalog.gs_base_url + 'wfs?' + urllib.parse.unquote(urllib.parse.urlencode(params))
+        uri = layer.catalog.layersEndpointUrl() + '/wfs?' + urllib.parse.unquote(urllib.parse.urlencode(params))
     elif resource.resource_type == 'coverage':
         params = {
             'identifier':  _get_namespaced_name(resource.workspace.name, resource.name),
             'format': 'GeoTIFF',
-            'url': layer.catalog.gs_base_url + 'wcs',
+            'url': layer.catalog.layersEndpointUrl() + '/wcs',
             'cache': 'PreferNetwork'
         }
         addAuth(params, catalog)
@@ -67,7 +65,7 @@ def layerUri(layer):
         params = {
             'layers': _get_namespaced_name(resource.workspace.name, resource.name),
             'format': 'image/png',
-            'url': layer.catalog.gs_base_url + 'wms',
+            'url': layer.catalog.layersEndpointUrl() + '/wms',
             'styles': '',
             'crs': resource.projection
         }
@@ -80,7 +78,7 @@ def groupUri(group):
     params = {
             'layers': group.name,
             'format': 'image/png',
-            'url': group.catalog.gs_base_url + 'wms',
+            'url': group.catalog.layersEndpointUrl() + '/wms',
             'styles': '',
         }
     addAuth(params, group.catalog)

@@ -74,7 +74,7 @@ def addLayerToGroups(catalog, layer, groups, workspace=None):
         lyrs = grp.layers
         styles = grp.styles
         lyrs.append(layer.name)
-        style = catalog.get_style(layer.name, workspace=workspace)
+        style = catalog.get_styles(layer.name, workspace=workspace)[0]
         styles.append(style)
         grp.dirty.update(layers=lyrs, styles=styles)
         catalog.save(grp)

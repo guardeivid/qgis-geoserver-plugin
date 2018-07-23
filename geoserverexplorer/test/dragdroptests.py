@@ -25,7 +25,7 @@ class DragDropTests(ExplorerIntegrationTest):
         self.assertIsNotNone(layer)
         self.cat.get_store(PT1, WORKSPACE)
         self.cat.delete(self.cat.get_layer(PT1), recurse = True)
-        self.cat.delete(self.cat.get_style(PT1), purge = True)
+        self.cat.delete(self.cat.get_styles(PT1)[0], purge = True)
 
     def testDropVectorLayerUriInWorkspaceItem(self):
         uri = os.path.join(os.path.dirname(__file__), "data", PT1 + ".shp")
@@ -36,7 +36,7 @@ class DragDropTests(ExplorerIntegrationTest):
         self.assertIsNotNone(layer)
         self.cat.get_store(PT1, WORKSPACEB)
         self.cat.delete(self.cat.get_layer(PT1), recurse = True)
-        self.cat.delete(self.cat.get_style(PT1), purge = True)
+        self.cat.delete(self.cat.get_styles(PT1)[0], purge = True)
 
     def testDropVectorLayerUriInLayersItem(self):
         uri = os.path.join(os.path.dirname(__file__), "data", PT1 + ".shp")
@@ -46,7 +46,7 @@ class DragDropTests(ExplorerIntegrationTest):
         self.assertIsNotNone(layer)
         self.cat.get_store(PT1, WORKSPACE)
         self.cat.delete(self.cat.get_layer(PT1), recurse = True)
-        self.cat.delete(self.cat.get_style(PT1), purge = True)
+        self.cat.delete(self.cat.get_styles(PT1)[0], purge = True)
 
     #===========================================================================
     # Drag & drop explorer tree element(s) into another explorer tree element

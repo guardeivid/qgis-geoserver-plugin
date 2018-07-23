@@ -166,7 +166,7 @@ class AddStyleToLayerDialog(QDialog):
         self.resize(400,200)
 
     def okPressed(self):
-        self.style = self.catalog.get_style(self.styleBox.currentText())
+        self.style = self.catalog.get_styles(self.styleBox.currentText())[0]
         self.default = self.checkBox.isChecked()
         self.close()
 

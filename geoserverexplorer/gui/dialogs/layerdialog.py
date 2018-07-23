@@ -3,7 +3,7 @@
 # (c) 2016 Boundless, http://boundlessgeo.com
 # This code is licensed under the GPL 2.0 license.
 #
-from __future__ import print_function
+
 from builtins import range
 from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtCore import *
@@ -60,7 +60,7 @@ class PublishLayersDialog(QDialog):
         self.table.horizontalHeader().setMinimumSectionSize(100)
         self.table.setColumnWidth(self.getColumn(self.name), 140)
         self.table.setColumnWidth(self.getColumn(self.ow), 100)
-        self.table.verticalHeader().setResizeMode(QHeaderView.ResizeToContents)
+        self.table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         self.table.setSelectionMode(QAbstractItemView.NoSelection)
         layout.addWidget(self.table)
 
@@ -76,7 +76,7 @@ class PublishLayersDialog(QDialog):
         self.validateNames()  # so OK button is initially updated
 
     def checkLayers(self, b):
-        state = QtCore.Qt.Checked if b else QtCore.Qt.Unchecked
+        state = Qt.Checked if b else Qt.Unchecked
         for idx in range(len(self.layers)):
             lyrItem = self.table.item(idx, self.getColumn(self.lyr))
             lyrItem.setCheckState(state)
@@ -95,8 +95,8 @@ class PublishLayersDialog(QDialog):
 
             lyritem = QTableWidgetItem(layer.name())
             lyritem.setToolTip(layer.name())
-            lyritem.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable)
-            lyritem.setCheckState(QtCore.Qt.Unchecked)
+            lyritem.setFlags(Qt.ItemIsEnabled | Qt.ItemIsUserCheckable)
+            lyritem.setCheckState(Qt.Unchecked)
             self.table.setItem(idx, self.getColumn(self.lyr), lyritem)
 
             nameBox = GSNameWidget(
@@ -156,7 +156,7 @@ class PublishLayersDialog(QDialog):
             # fix_print_with_import
             print(idx, self.getColumn(self.lyr))
             lyrItem = self.table.item(idx, self.getColumn(self.lyr))
-            if lyrItem.checkState() == QtCore.Qt.Checked:
+            if lyrItem.checkState() == Qt.Checked:
                 nameBox = self.table.cellWidget(idx, self.getColumn(self.name))
                 layername = nameBox.definedName()
                 workspaceBox = self.table.cellWidget(idx, self.getColumn(self.wrksp))

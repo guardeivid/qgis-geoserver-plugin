@@ -3,7 +3,7 @@
 # (c) 2016 Boundless, http://boundlessgeo.com
 # This code is licensed under the GPL 2.0 license.
 #
-from __future__ import print_function
+
 from builtins import map
 import unittest
 import os
@@ -126,7 +126,7 @@ class CatalogTests(UtilsTestCase):
         sldfile = os.path.join(os.path.dirname(__file__), "resources", "vector.2.16.sld")
         with open(sldfile, 'r') as f:
             sld = f.read()
-        gssld = self.cat.catalog.get_style(PT1).sld_body
+        gssld = self.cat.catalog.get_styles(PT1)[0].sld_body
         self.compareSld(sld, gssld)
         self.cat.catalog.delete(self.cat.catalog.get_layer(PT1), recurse = True)
 
@@ -136,7 +136,7 @@ class CatalogTests(UtilsTestCase):
         sldfile = os.path.join(os.path.dirname(__file__), "resources", "raster.sld")
         with open(sldfile, 'r') as f:
             sld = f.read()
-        gssld = self.cat.catalog.get_style(DEM).sld_body
+        gssld = self.cat.catalog.get_styles(DEM)[0].sld_body
         self.compareSld(sld, gssld)
         self.cat.catalog.delete(self.cat.catalog.get_layer(DEM), recurse = True)
 

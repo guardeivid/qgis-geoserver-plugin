@@ -3,7 +3,7 @@
 # (c) 2016 Boundless, http://boundlessgeo.com
 # This code is licensed under the GPL 2.0 license.
 #
-from __future__ import print_function
+
 from builtins import str
 from builtins import range
 import os
@@ -324,8 +324,6 @@ def getCatalog():
         catWrapper = getGeoServerCatalog()
 
     return catWrapper
-    # return RetryCatalog(serverLocationBasicAuth()+"/rest", "admin", "geoserver")
-
 
 def setUpCatalogAndWorkspace():
     catWrapper = getCatalog()

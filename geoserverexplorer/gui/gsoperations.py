@@ -119,7 +119,7 @@ def publishProject(tree, explorer, catalog):
         try:
             layergroup = catalog.create_layergroup(group, names, names, getGroupBounds(groups[group]))
         except ConflictingDataError:
-            layergroup = catalog.get_layergroup(group)
+            layergroup = catalog.get_layergroups(group)[0]
             layergroup.dirty.update(layers = names, styles = names)
         explorer.run(catalog.save, "Create layer group '" + group + "'",
                  [], layergroup)
@@ -129,7 +129,7 @@ def publishProject(tree, explorer, catalog):
         try:
             layergroup = catalog.create_layergroup(groupName, names, names, getGroupBounds(layers))
         except ConflictingDataError:
-            layergroup = catalog.get_layergroup(groupName)
+            layergroup = catalog.get_layergroups(groupName)[0]
             layergroup.dirty.update(layers = names, styles = names)
         explorer.run(catalog.save, "Create global layer group",
                  [], layergroup)

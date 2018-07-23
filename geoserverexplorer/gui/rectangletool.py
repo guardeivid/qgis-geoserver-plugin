@@ -8,6 +8,9 @@ from qgis.gui import *
 from qgis.PyQt import QtCore
 
 class RectangleMapTool(QgsMapToolEmitPoint):
+
+    rectangleCreated = QtCore.pyqtSignal()
+    
     def __init__(self, canvas):
         self.canvas = canvas
         QgsMapToolEmitPoint.__init__(self, self.canvas)
@@ -43,7 +46,7 @@ class RectangleMapTool(QgsMapToolEmitPoint):
         self.showRect(self.startPoint, self.endPoint)
 
     def showRect(self, startPoint, endPoint):
-        self.rubberBand.reset(QGis.Polygon)
+        self.rubberBand.reset(QgsWkbTypes.PolygonGeometry)
         if startPoint.x() == endPoint.x() or startPoint.y() == endPoint.y():
             return
 

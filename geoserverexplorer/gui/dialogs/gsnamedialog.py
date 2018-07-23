@@ -7,7 +7,6 @@
 Dialog to create a user-defined name for a GeoServer component, with optional
 validation.
 """
-from __future__ import print_function
 
 from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtCore import *

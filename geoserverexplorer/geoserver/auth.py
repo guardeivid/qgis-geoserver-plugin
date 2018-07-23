@@ -25,7 +25,6 @@ import logging
 from xml.etree.ElementTree import XML
 from xml.parsers.expat import ExpatError
 from geoserver.catalog import FailedRequestError
-from gsimporter.client import Client, _Client
 from qgiscommons2.network.networkaccessmanager import NetworkAccessManager
 from .basecatalog import BaseCatalog
 
@@ -76,23 +75,3 @@ class AuthCatalog(BaseCatalog):
                 raise FailedRequestError("Tried to make a GET request to %s but got a %d status code: \n%s" % (rest_url, response.status, content))
 
 
-class AuthClient(Client):
-
-    def __init__(self, url, authid):
-        self.client = _AuthClient(url, authid)
-
-    def __getstate__(self):
-        cl = self.client
-        return {'url':cl.service_url, 'authid': cl.authid}
-    def __setstate__(self,state):
-        self.client = _AuthClient(state['url'], state['authid'])
-
-
-class _AuthClient(_Client):
-
-    def __init__(self, url, authid):
-        self.service_url = url
-        self.authid = authid
-        if self.service_url.endswith("/"):
-            self.service_url = self.service_url.strip("/")
-        self.http = NetworkAccessManager(self.authid, exception_class=FailedRequestError)

@@ -43,7 +43,7 @@ class DeleteTests(ExplorerIntegrationTest):
         self.catWrapper.publishLayer(PT1, self.ws, name=PT1)
         layer = self.cat.get_layer(PT1)
         self.assertIsNotNone(layer)
-        style = self.cat.get_style(PT1)
+        style = self.cat.get_styles(PT1)[0]
         self.assertIsNotNone(style)
         self.getLayersItem().refreshContent(self.explorer)
         self.getStylesItem().refreshContent(self.explorer)
@@ -62,7 +62,7 @@ class DeleteTests(ExplorerIntegrationTest):
         self.catWrapper.publishLayer(PT1)
         layer = self.cat.get_layer(PT1)
         self.assertIsNotNone(layer)
-        style = self.cat.get_style(PT1)
+        style = self.cat.get_styles(PT1)[0]
         self.assertIsNotNone(style)
         self.getLayersItem().refreshContent(self.explorer)
         self.getStylesItem().refreshContent(self.explorer)

@@ -13,9 +13,8 @@ from geoserver.catalog import ConflictingDataError, UploadError, FailedRequestEr
 from geoserverexplorer.qgis.sldadapter import adaptGsToQgs,\
     getGsCompatibleSld
 from geoserverexplorer.qgis import uri as uri_utils
-from gsimporter.client import Client
-from geoserverexplorer.geoserver.pki import PKICatalog, PKIClient
-from geoserverexplorer.geoserver.auth import AuthCatalog, AuthClient
+from geoserverexplorer.geoserver.pki import PKICatalog
+from geoserverexplorer.geoserver.auth import AuthCatalog
 from geoserverexplorer.geoserver.basecatalog import BaseCatalog
 from geoserverexplorer.geoserver import pem
 from geoserverexplorer.geoserver.util import groupsWithLayer, removeLayerFromGroups, \
@@ -63,14 +62,6 @@ class CatalogWrapper(object):
 
     def __init__(self, catalog):
         self.catalog = catalog
-        #we also create a Client object pointing to the same url
-        if isinstance(catalog, AuthCatalog):
-            self.client = AuthClient(catalog.service_url, catalog.authid)
-        elif isinstance(catalog, PKICatalog):
-            self.client = PKIClient(catalog.service_url, catalog.key, catalog.cert, catalog.ca_cert)
-        else:
-            self.client = Client(str(catalog.service_url), catalog.username, catalog.password)
-
 
     def clean(self):
         self.cleanUnusedStyles()
@@ -157,6 +148,7 @@ class CatalogWrapper(object):
         if isinstance(layer, str):
             layer = layers.resolveLayer(layer)
         sld, icons = getGsCompatibleSld(layer)
+        print(sld)
         if sld is not None:
             name = name if name is not None else layer.name()
             name = name.replace(" ", "_")
@@ -167,29 +159,13 @@ class CatalogWrapper(object):
 
     def uploadIcons(self, icons):
         for icon in icons:
-            url = self.catalog.gs_base_url + "rest/resource/styles/"+icon[1]
+            url = self.catalog.service_url + "rest/resource/styles/" + icon[1]
             if isinstance(self.catalog, PKICatalog):
                 r = requests.put(url, data=icon[2], cert=(self.catalog.cert, self.catalog.key), verify=self.catalog.ca_cert)
             else:
                 r = requests.put(url, data=icon[2], auth=(self.catalog.username, self.catalog.password))
-            try:
-                r.raise_for_status()
-            except Exception as e:
-                #In case the GeoServer instance is a Suite one with GeoServer 2.9 or earlier
-                self.uploadIconsSuite(icons)
+            r.raise_for_status()
 
-    def uploadIconsSuite(self, icons):
-        url = self.catalog.gs_base_url + "app/api/icons"
-        for icon in icons:
-            files = {'file': (icon[1], icon[2])}
-            if isinstance(self.catalog, PKICatalog):
-                r = requests.post(url, files=files, cert=(self.catalog.cert, self.catalog.key), verify=self.catalog.ca_cert)
-            else:
-                r = requests.post(url, files=files, auth=(self.catalog.username, self.catalog.password))
-            try:
-                r.raise_for_status()
-            except Exception as e:
-                raise Exception ("Error uploading SVG icon to GeoServer:\n" + str(e))
 
     def getDataFromLayer(self, layer):
         '''
@@ -288,8 +264,9 @@ class CatalogWrapper(object):
 
             # now re-add to any previously assigned-to layer groups
             if overwrite and grpswlyr:
-                ftype = self.catalog.get_resource(name)
-                if ftype:
+                ftypes = self.catalog.get_resources(name)
+                if ftypes:
+                    ftype = ftypes[0]
                     addLayerToGroups(self.catalog, ftype, grpswlyr,
                                      workspace=workspace)
 
@@ -309,31 +286,6 @@ class CatalogWrapper(object):
                               overwrite=overwrite)
 
 
-    def _uploadImporter(self, layer, workspace, overwrite, name):
-        # @todo - more richness needed to allow ingestion into target store
-        # versus just publishing the layer to a workspace as a shapefile
-        path = self.getDataFromLayer(layer)
-        if isinstance(path, dict):
-            if 'shp' in path:
-                path = path['shp']
-            else:
-                raise Exception('Unexpected condition : %s', list(path.keys()))
-        session = self.client.upload(path)
-        if not session.tasks:
-            raise Exception('Geoserver is not able to process the uploaded data')
-        if len(session.tasks) != 1:
-            # this probably shouldn't happen but just in case
-            raise Exception('Unexpected condition')
-        # set workspace if needed (network trip)
-        # limitation in setting name as importer interprets this as a request
-        # to use an existing store by name
-        if workspace:
-            session.tasks[0].set_target(workspace=workspace.name)
-        if overwrite:
-            session.tasks[0].set_update_mode('REPLACE')
-        session.commit()
-
-
     def upload(self, layer, workspace=None, overwrite=True, name=None):
         '''uploads the specified layer'''
 
@@ -344,8 +296,6 @@ class CatalogWrapper(object):
         title = name
         name = name.replace(" ", "_")
 
-        restApi = pluginSetting("UseRestApi")
-
         if layer.type() not in (layer.RasterLayer, layer.VectorLayer):
             msg = layer.name() + ' is not a valid raster or vector layer'
             raise Exception(msg)
@@ -354,10 +304,8 @@ class CatalogWrapper(object):
         try:
             if provider.name() == 'postgres':
                 self._publishPostgisLayer(layer, workspace, overwrite, name)
-            elif restApi:
-                self._uploadRest(layer, workspace, overwrite, name)
             else:
-                self._uploadImporter(layer, workspace, overwrite, name)
+                self._uploadRest(layer, workspace, overwrite, name)
         except UploadError as e:
             msg = ('Could not save the layer %s, there was an upload '
                    'error: %s' % (layer.name(), str(e)))
@@ -375,8 +323,9 @@ class CatalogWrapper(object):
 
 
         # Verify the resource was created
-        resource = self.catalog.get_resource(name)
-        if resource is not None:
+        resources = self.catalog.get_resources(name)
+        if resources:
+            resource = resources[0]
             assert resource.name == name
         else:
             msg = ('could not create layer %s.' % name)
@@ -438,7 +387,7 @@ class CatalogWrapper(object):
             raise Exception("The specified group does not exist")
 
         destName = destName if destName is not None else name
-        gsgroup = self.catalog.get_layergroup(destName)
+        gsgroup = self.catalog.get_layergroups(destName)[0]
         if gsgroup is not None and not overwrite:
             return
 
@@ -504,68 +453,13 @@ class CatalogWrapper(object):
 
         sld = self.publishStyle(layer, overwrite, name) if style is None else None
 
-        layer = self.preprocess(layer)
         self.upload(layer, workspace, overwrite, name)
 
         if sld is not None or style is not None:
             #assign style to created store
             publishing = self.catalog.get_layer(name)
-            publishing.default_style = style or self.catalog.get_style(name)
+            publishing.default_style = style or self.catalog.get_styles(name)[0]
             self.catalog.save(publishing)
-
-    def preprocess(self, layer):
-        '''
-        Preprocesses the layer with the corresponding preprocess hook and returns the path to the
-        resulting layer. If no preprocessing is performed, it returns the input layer itself
-        '''
-        if not processingOk:
-            return layer
-
-        if layer.type() == layer.RasterLayer:
-            try:
-                hookFile = pluginSetting("PreuploadRasterHook")
-                if hookFile:
-                    alg = self.getAlgorithmFromHookFile(hookFile)
-                    if (len(alg.parameters) == 1 and isinstance(alg.parameters[0], ParameterRaster)
-                        and len(alg.outputs) == 1 and isinstance(alg.outputs[0], OutputRaster)):
-                        alg.parameters[0].setValue(layer)
-                        if runalg(alg, SilentProgress()):
-                            return load(alg.outputs[0].value)
-                        return layer
-                else:
-                    return layer
-            except:
-                QgsMessageLog.logMessage("Could not apply hook to layer upload. Wrong Hook", level=QgsMessageLog.WARNING)
-                return layer
-        elif layer.type() == layer.VectorLayer:
-            try:
-                hookFile = pluginSetting("PreuploadVectorHook")
-                if hookFile:
-                    alg = self.getAlgorithmFromHookFile(hookFile)
-                    if (len(alg.parameters) == 1 and isinstance(alg.parameters[0], ParameterVector)
-                        and len(alg.outputs) == 1 and isinstance(alg.outputs[0], OutputVector)):
-                        alg.parameters[0].setValue(layer)
-                        if runalg(alg, SilentProgress()):
-                            return load(alg.outputs[0].value)
-                        return layer
-                else:
-                    return layer
-            except:
-                QgsMessageLog.logMessage("Could not apply hook to layer upload. Wrong Hook", level=QgsMessageLog.WARNING)
-                return layer
-
-    def getAlgorithmFromHookFile(self, hookFile):
-        if hookFile.endswith('py'):
-            script = ScriptAlgorithm(hookFile)
-            script.provider = ModelerUtils.providers['script']
-            return script
-        elif hookFile.endswith('model'):
-            model = ModelerAlgorithm()
-            model.openModel(hookFile)
-            model.provider = ModelerUtils.providers['model']
-            return model
-        else:
-            raise Exception ("Wrong hook file")
 
     def addLayerToProject(self, name, destName = None):
         '''
@@ -588,8 +482,8 @@ class CatalogWrapper(object):
                 raise Exception ("Layer at %s is not a valid layer" % uri)
             ok = True
             try:
-                sld = layer.default_style.sld_body
-                sld = adaptGsToQgs(sld)
+                sld = layer.default_style.sld_body.decode()
+                sld = adaptGsToQgs(str(sld))
                 sldfile = tempFilename("sld")
                 with open(sldfile, 'w') as f:
                     f.write(sld)
@@ -616,9 +510,9 @@ class CatalogWrapper(object):
             raise Exception("Cannot add layer. Unsupported layer type.")
 
     def addGroupToProject(self, name):
-        group = self.catalog.get_layergroup(name)
+        group = self.catalog.get_layergroups(name)[0]
         if group is None:
-            raise Exception ("A layer with the name '" + name + "' was not found in the catalog")
+            raise Exception ("A group with the name '" + name + "' was not found in the catalog")
 
         uri = uri_utils.groupUri(group)
 

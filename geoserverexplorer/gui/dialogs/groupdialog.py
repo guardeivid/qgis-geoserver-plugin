@@ -70,7 +70,7 @@ class LayerGroupDialog(QDialog):
         self.table.verticalHeader().setVisible(False)
         self.table.horizontalHeader().setVisible(True)
         self.table.setHorizontalHeaderLabels(["Layer", "Style"])
-        self.table.horizontalHeader().setResizeMode(QHeaderView.Stretch)
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.selectAllButton = QPushButton()
         self.selectAllButton.setText("(de)Select all")
         self.setTableContent()

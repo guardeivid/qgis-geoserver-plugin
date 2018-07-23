@@ -11,7 +11,7 @@ from qgis.gui import *
 from qgis.utils import iface
 from geoserverexplorer.qgis.utils import readTrackedLayers
 from functools import partial
-from qgis.PyQt import QtCore, QtGui
+from qgis.PyQt import QtCore, QtGui, QtWidgets
 from geoserverexplorer.qgis.utils import getTrackingInfo, removeTrackedLayer
 from geoserver.catalog import Catalog
 from geoserverexplorer.qgis.catalog import CatalogWrapper
@@ -22,23 +22,20 @@ _explorer = None
 
 def layerAdded(qgislayer):
     try:
-        qgislayer.styleChanged.connect(partial(updatePublishedStyle, qgislayer))
-    except: #styleChanged only available for QGIS >2.16
-        pass
-
-    try:
+        print(qgislayer.providerType().lower())
         if qgislayer.providerType().lower() != "wfs":
             return
     except:
+        raise
         pass #Not all layers have a providerType method
     catalogs = list(_explorer.explorerTree.gsItem._catalogs.values())
     for cat in catalogs:
-        if cat.gs_base_url in qgislayer.source():
+        if cat.layersEndpointUrl() in qgislayer.source():
             for layer in cat.get_layers():
                 uri = uri_utils.layerUri(layer)
                 if uri == qgislayer.source():
                     try:
-                        sld = layer.default_style.sld_body
+                        sld = layer.default_style.sld_body.decode()
                         sld = adaptGsToQgs(sld)
                         sldfile = tempFilename("sld")
                         with open(sldfile, 'w') as f:
@@ -46,9 +43,10 @@ def layerAdded(qgislayer):
                         msg, ok = qgislayer.loadSldStyle(sldfile)
                         if not ok:
                             raise Exception("Could not load style for layer <b>%s</b>" % qgislayer.name())
+                        qgislayer.styleChanged.connect(partial(updatePublishedStyle, qgislayer))
                     except Exception as e:
                         _explorer.setWarning("Could not set style for layer <b>%s</b>" % qgislayer.name())
-                    break
+                    return
 
 
 _currentMessageBarLayer = None
@@ -67,7 +65,7 @@ def updatePublishedStyle(layer):
             _currentMessageBarLayer = layer
             widget = iface.messageBar().createMessage("",
                     "This layer was uploaded to a geoserver catalog. Do you want to update the published style?")
-            updateButton = QtGui.QPushButton(widget)
+            updateButton = QtWidgets.QPushButton(widget)
             updateButton.setText("Update")
             def updateStyle():
                 url = getTrackingInfo(layer)
@@ -78,7 +76,7 @@ def updatePublishedStyle(layer):
                 _resetCurrentMessageBarLayer()
             updateButton.pressed.connect(updateStyle)
             widget.layout().addWidget(updateButton)
-            stopTrackingButton = QtGui.QPushButton(widget)
+            stopTrackingButton = QtWidgets.QPushButton(widget)
             stopTrackingButton.setText("Stop tracking this layer")
             def stopTracking():
                 removeTrackedLayer(layer)
@@ -86,7 +84,7 @@ def updatePublishedStyle(layer):
                 _resetCurrentMessageBarLayer()
             stopTrackingButton.pressed.connect(stopTracking)
             widget.layout().addWidget(stopTrackingButton)
-            iface.messageBar().pushWidget(widget, QgsMessageBar.INFO)
+            iface.messageBar().pushWidget(widget, Qgis.Info)
             iface.messageBar().currentItem().geoserverLayer = layer
             #iface.messageBar().widgetRemoved.connect(_resetCurrentMessageBarLayer)
 

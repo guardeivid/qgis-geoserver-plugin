@@ -70,10 +70,10 @@ class SldEditorWidget(QsciScintilla):
         self.setCaretLineVisible(True)
         self.setCaretLineBackgroundColor(QColor("#ffe4e4"))
 
-        lexer = QsciLexerXML()
-        lexer.setDefaultFont(font)
-        self.setLexer(lexer)
-        self.SendScintilla(QsciScintilla.SCI_STYLESETFONT, 1, 'Courier')
+        #lexer = QsciLexerXML()
+        #lexer.setDefaultFont(font)
+        #self.setLexer(lexer)
+        self.SendScintilla(QsciScintilla.SCI_STYLESETFONT, 1, 'Courier'.encode())
 
         self.setText(text)
 

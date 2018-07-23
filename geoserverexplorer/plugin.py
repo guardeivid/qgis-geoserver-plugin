@@ -3,7 +3,7 @@
 # (c) 2016 Boundless, http://boundlessgeo.com
 # This code is licensed under the GPL 2.0 license.
 #
-from __future__ import absolute_import
+
 from builtins import object
 import os
 from . import config
@@ -12,13 +12,6 @@ from geoserverexplorer.geoserver import pem
 from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtCore import *
 from qgis.PyQt.QtWidgets import *
-try:
-    from processing.core.Processing import Processing
-    from .processingprovider.geoserverprovider import GeoServerProvider
-    processingOk = True
-except:
-    processingOk = False
-from geoserverexplorer.qgis.sldadapter import adaptGsToQgs
 from geoserverexplorer.qgis import layerwatcher
 from qgiscommons2.settings import pluginSetting, setPluginSetting, readSettings
 from qgiscommons2.gui import addHelpMenu, removeHelpMenu, addAboutMenu, removeAboutMenu
@@ -29,8 +22,6 @@ class GeoServerExplorerPlugin(object):
     def __init__(self, iface):
         self.iface = iface
         config.iface = iface
-        if processingOk:
-            self.provider = GeoServerProvider()
         readSettings()
         try:
             from qgistester.tests import addTestModule
@@ -41,7 +32,6 @@ class GeoServerExplorerPlugin(object):
         except Exception as ex:
             pass
 
-
     def unload(self):
         pem.removePkiTempFiles(self.explorer.catalogs())
         self.explorer.deleteLater()
@@ -49,8 +39,6 @@ class GeoServerExplorerPlugin(object):
         removeHelpMenu("GeoServer", self.iface.removePluginWebMenu)
         removeAboutMenu("GeoServer", self.iface.removePluginWebMenu)
         self.iface.removePluginWebMenu(u"GeoServer", self.explorerAction)
-        if processingOk:
-            Processing.removeProvider(self.provider)
         layerwatcher.disconnectLayerWasAdded()
         try:
             from qgistester.tests import removeTestModule
@@ -76,9 +64,6 @@ class GeoServerExplorerPlugin(object):
         addSettingsMenu("GeoServer", self.iface.addPluginToWebMenu)
         addHelpMenu("GeoServer", self.iface.addPluginToWebMenu)
         addAboutMenu("GeoServer", self.iface.addPluginToWebMenu)
-
-        if processingOk:
-            Processing.addProvider(self.provider)
 
         layerwatcher.connectLayerWasAdded(self.explorer)
 
