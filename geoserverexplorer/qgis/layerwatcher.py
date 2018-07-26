@@ -22,11 +22,9 @@ _explorer = None
 
 def layerAdded(qgislayer):
     try:
-        print(qgislayer.providerType().lower())
         if qgislayer.providerType().lower() != "wfs":
             return
     except:
-        raise
         pass #Not all layers have a providerType method
     catalogs = list(_explorer.explorerTree.gsItem._catalogs.values())
     for cat in catalogs:

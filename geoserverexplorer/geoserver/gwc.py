@@ -29,6 +29,7 @@ class Gwc(object):
             raise Exception('GWC Layers listing failed: ' + resp.text)
 
         # try to resolve layer if already configured
+        print(resp.text)
         dom = XML(resp.text)
         layers = []
         for layer in list(dom):
@@ -82,7 +83,7 @@ class GwcLayer(object):
                 #in case this parameters are not in the layer description
                 self.metaWidth, self.metaHeight = 1, 1
         else:
-            raise FailedRequestError(str(response) + content)
+            raise FailedRequestError(resp.text)
 
     def xml(self):
         root = ET.Element('GeoServerLayer')
@@ -188,7 +189,7 @@ class GwcLayer(object):
                     return None
             except Exception as e:
                 raise SeedingStatusParsingError()
-            return content
+            return resp.text
 
     def killSeedingTasks(self):
         url = self.gwc.url + 'seed/' + self.name

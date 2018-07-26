@@ -44,6 +44,8 @@ def addDraggedUrisToWorkspace(uris, catalog, workspace, explorer, tree):
             explorer.setProgressMaximum(len(uris))
         for i, uri in enumerate(uris):
             source = uri if isinstance(uri, str) else uri.uri
+            source = source.split("|")[0]
+            print(source)
             if source in allLayers:
                 layer = publishableLayers.get(source, None)
             else:

@@ -10,7 +10,7 @@ import sys
 import os
 from qgis.core import *
 from qgis.utils import iface
-from PyQt4.QtCore import *
+from qgis.PyQt.QtCore import *
 from qgis.PyQt.QtWidgets import QWidget, QHBoxLayout, QToolTip
 from qgis.PyQt.QtTest import QTest
 from geoserverexplorer.geoserver import pem

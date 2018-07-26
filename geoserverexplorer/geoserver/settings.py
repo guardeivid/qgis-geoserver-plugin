@@ -18,35 +18,14 @@ class Settings(object):
 
     def __init__(self, catalog):
         self.catalog = catalog
-        if isinstance(catalog, AuthCatalog):
-            http = catalog.http
-        elif isinstance(catalog, PKICatalog):
-            http = httplib2.Http(ca_certs=catalog.ca_cert, disable_ssl_certificate_validation = False)
-            http.add_certificate(catalog.key, catalog.cert, '')
-        else:
-            http = httplib2.Http()
-            http.add_credentials(catalog.username, catalog.password)
-            netloc = urlparse(self.catalog.service_url).netloc
-            http.authorizations.append(
-                httplib2.BasicAuthentication(
-                    (catalog.username, catalog.password),
-                    netloc,
-                    self.catalog.service_url,
-                    {},
-                    None,
-                    None,
-                    http
-                )
-        )
-        self.http = http
 
     def settings(self):
         settings = {}
         settings_url = build_url(self.catalog.service_url, ['settings.xml'])
-        headers, response = self.http.request(settings_url, 'GET')
-        if headers.status != 200: raise Exception('Settings listing failed - %s, %s' %
-                                                 (headers,response))
-        dom = XML(response)
+        resp = self.catalog.http_request(settings_url, 'GET')
+        if resp.status_code != 200: 
+            raise Exception('Settings listing failed: ' + resp.text)
+        dom = XML(resp.text)
         sections = ['settings', 'jai','coverageAccess']
         for section in sections:
             params = []
@@ -82,6 +61,6 @@ class Settings(object):
         xml = ET.tostring(root)
         settings_url = build_url(self.catalog.service_url, ['settings.xml'])
         headers = {'Content-type': 'text/xml'}
-        headers, response = self.http.request(settings_url, 'PUT', xml, headers = headers)
-        if headers.status != 200: raise Exception('Settings update failed - %s, %s' %
-                                                 (headers,response))
+        resp = self.catalog.http_request(settings_url, xml, 'PUT', headers = headers)
+        if resp.status_code != 200: 
+            raise Exception('Settings update failed: ' + resp.text)

@@ -148,7 +148,7 @@ class LayerGroupDialog(QDialog):
         else:
             #TODO compute bounds
             bbox = None
-            self.group =  UnsavedLayerGroup(self.catalog, self.name, layers, styles, bbox)
+            self.group =  UnsavedLayerGroup(self.catalog, self.name, layers, styles, bbox, "SINGLE", "", self.name)
         self.close()
 
     def cancelPressed(self):

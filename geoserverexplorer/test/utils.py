@@ -44,7 +44,7 @@ WORKSPACE = safeName("workspace")
 WORKSPACEB = safeName("workspaceb")
 
 # envs that can be override by os.environ envs
-GSHOSTNAME = 'suite.boundless.test'
+GSHOSTNAME = 'localhost'
 GSPORT = '8080'
 GSSSHPORT = '8443'
 GSUSER = 'admin'
@@ -103,11 +103,11 @@ def cleanCatalog(cat):
 
     for groupName in [GROUP, GEOLOGY_GROUP]:
         def _del_group(groupName, cat):
-            group = cat.get_layergroup(groupName)
-            if group is not None:
-                cat.delete(group)
-                group = cat.get_layergroup(groupName)
-                assert group is None
+            groups = cat.get_layergroups(groupName)
+            if groups:
+                cat.delete(groups[0])
+                groups = cat.get_layergroups(groupName)
+                assert groups == []
 
         _del_group(groupName, cat)
         # Try with namespaced
@@ -121,19 +121,18 @@ def cleanCatalog(cat):
         if style.name.startswith(PREFIX):
             toDelete.append(style)
 
+    print(toDelete)
     for e in toDelete:
         try:
             cat.delete(e, purge=True)
         except:
-            from qgis.PyQt.QtCore import QCoreApplication
-            while 1:
-                QCoreApplication.instance().processEvents()
+            pass
 
     for ws in cat.get_workspaces():
         if not ws.name.startswith(PREFIX):
             continue
         if ws is not None:
-            for store in cat.get_stores(ws):
+            for store in cat.get_stores(workspaces=ws):
                 for resource in store.get_resources():
                     try:
                         cat.delete(resource)
@@ -141,14 +140,14 @@ def cleanCatalog(cat):
                         pass
                 cat.delete(store)
             cat.delete(ws)
-            ws = cat.get_workspace(ws.name)
-            assert ws is None
+            ws = cat.get_workspaces(ws.name)
+            assert len(ws) > 0
 
 
 def populateCatalog(cat):
     cleanCatalog(cat)
     cat.create_workspace(WORKSPACE, "http://test.com")
-    ws = cat.get_workspace(WORKSPACE)
+    ws = cat.get_workspaces(WORKSPACE)[0]
     path = os.path.join(os.path.dirname(__file__), "data", PT2)
     data = shapefile_and_friends(path)
     cat.create_featurestore(PT2, data, ws)
@@ -198,7 +197,7 @@ def initAuthManager():
     """
     global AUTHM
     if not AUTHM:
-        AUTHM = QgsAuthManager.instance()
+        AUTHM = QgsApplication.authManager()
         # check if QgsAuthManager has been already initialised... a side effect
         # of the QgsAuthManager.init() is that AuthDbPath is set
         if AUTHM.authenticationDbPath():
@@ -352,18 +351,18 @@ def setUpCatalogAndExplorer():
 
 def checkNewLayer():
     cat = getCatalog().catalog
-    stores = cat.get_stores("test_workspace")
+    stores = cat.get_stores(workspaces="test_workspace")
     assert len(stores) != 0
 
 
 def clean():
     global AUTHM
     cat = getCatalog().catalog
-    ws = cat.get_workspace("test_workspace")
+    ws = cat.get_workspaces(workspaces="test_workspace")
     if ws:
-        cat.delete(ws, recurse=True)
-        ws = cat.get_workspace(ws.name)
-        assert ws is None
+        cat.delete(ws[0], recurse=True)
+        ws = cat.get_workspaces(ws[0].name)
+        assert len(ws) == 0
 
 
 def cleanAndPki():

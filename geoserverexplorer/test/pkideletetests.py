@@ -31,8 +31,7 @@ class PkiDeleteTests(DeleteTests):
         # do workspace population
         super(PkiDeleteTests, cls).setUpClass()
 
-        cls.ws = cls.cat.get_workspace(utils.WORKSPACE)
-        assert cls.ws is not None
+        cls.ws = cls.cat.get_workspaces(utils.WORKSPACE)[0]        
 
         # load project
         projectFile = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "test.qgs")

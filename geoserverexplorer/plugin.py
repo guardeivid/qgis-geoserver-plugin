@@ -6,12 +6,13 @@
 
 from builtins import object
 import os
-from . import config
 from geoserverexplorer.gui.explorer import GeoServerExplorer
 from geoserverexplorer.geoserver import pem
 from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtCore import *
 from qgis.PyQt.QtWidgets import *
+from qgis import utils 
+from qgis.core import QgsMessageLog
 from geoserverexplorer.qgis import layerwatcher
 from qgiscommons2.settings import pluginSetting, setPluginSetting, readSettings
 from qgiscommons2.gui import addHelpMenu, removeHelpMenu, addAboutMenu, removeAboutMenu
@@ -21,14 +22,13 @@ class GeoServerExplorerPlugin(object):
 
     def __init__(self, iface):
         self.iface = iface
-        config.iface = iface
         readSettings()
         try:
             from qgistester.tests import addTestModule
             from geoserverexplorer.test import testplugin
-            from geoserverexplorer.test import testpkiplugin
+            #from geoserverexplorer.test import testpkiplugin
             addTestModule(testplugin, "GeoServer")
-            addTestModule(testpkiplugin, "PKI GeoServer")
+            #addTestModule(testpkiplugin, "PKI GeoServer")
         except Exception as ex:
             pass
 
@@ -72,4 +72,6 @@ class GeoServerExplorerPlugin(object):
 
     def openExplorer(self):
         self.explorer.show()
+
+
 

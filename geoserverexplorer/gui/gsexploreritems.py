@@ -10,6 +10,7 @@ import os
 from collections import defaultdict
 from qgis.core import *
 from qgis.gui import *
+from qgis.utils import iface
 from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtCore import *
 from qgis.PyQt.QtWidgets import *
@@ -31,7 +32,6 @@ from geoserverexplorer.geoserver.settings import Settings
 from geoserverexplorer.gui.parametereditor import ParameterEditor
 from .dialogs.sldeditor import SldEditorDialog
 from geoserverexplorer.gui.gwcexploreritems import GwcLayersItem
-from geoserverexplorer import config
 from geoserverexplorer.qgis.utils import *
 from geoserverexplorer.qgis.sldadapter import adaptGsToQgs, getGeomTypeFromSld,\
     getGsCompatibleSld
@@ -44,7 +44,6 @@ from geoserverexplorer.geoserver import pem
 from geoserverexplorer.gui.gsoperations import *
 from geoserverexplorer.geoserver.basecatalog import BaseCatalog
 from geoserverexplorer.geoserver.auth import AuthCatalog
-from geoserverexplorer.gui.gsoperations import addDraggedStyleToLayer
 import xml.dom.minidom
 from qgiscommons2.settings import pluginSetting
 from qgiscommons2.files import tempFilename
@@ -151,8 +150,9 @@ class GsTreeItem(TreeItem):
                         break
             for styleEntry in stylesEntriesToUpdate:
                 if styleEntry not in toUpdate:
-                    toUpdate.append(ws) 
+                    toUpdate.append(styleEntry) 
         explorer.setProgressMaximum(len(elements), "Deleting elements")
+        print(toUpdate)
         for progress, element in enumerate(elements):
             explorer.setProgress(progress)
             #we run this delete operation this way, to ignore the error in case we are trying to delete
@@ -210,7 +210,7 @@ class GsTreeItem(TreeItem):
                     allUsedStyles.add(lyr.default_style.name)
         for style in layer.styles:
             if style.name not in allUsedStyles:
-                unique.append(style)
+                unique.append(style)        
         if layer.default_style is not None and layer.default_style not in allUsedStyles:
             unique.append(layer.default_style)
         return unique
@@ -361,7 +361,7 @@ class GsLayersItem(GsTreeItem):
                 try:
                     layerItem = GsLayerItem(layer)
                 except:
-                    config.iface.messageBar().pushMessage("Warning", "Layers %s could not be added" % layer.name,
+                    iface.messageBar().pushMessage("Warning", "Layers %s could not be added" % layer.name,
                       level = Qgis.Warning,
                       duration = 10)
                 layerItem.populate()
@@ -513,7 +513,7 @@ class GsCatalogItem(GsTreeItem):
             authid = settings.value("authid")
             QApplication.restoreOverrideCursor()
             if authid is not None:            
-                authtype = QgsAuthManager.instance().configAuthMethodKey(authid)
+                authtype = QgsApplication.authManager().configAuthMethodKey(authid)
                 if not authtype or authtype == '':
                     raise Exception("Cannot restore catalog. Invalid or missing auth information")
                 cache_time =  pluginSetting("AuthCatalogXMLCacheTime")
@@ -580,7 +580,7 @@ class GsCatalogItem(GsTreeItem):
     def checkWorkspaces(self):
         ws = self.getDefaultWorkspace()
         if ws is None:
-            QMessageBox.warning(config.iface.mainWindow(), 'No workspaces',
+            QMessageBox.warning(iface.mainWindow(), 'No workspaces',
             "You must have at least one workspace in your catalog\n"
             "to perform this operation.",
             QMessageBox.Ok)
@@ -858,7 +858,7 @@ class GsLayerItem(GsTreeItem):
         layerNames = [layer.name for layer in layers]
         #TODO calculate bounds
         bbox = None
-        group =  UnsavedLayerGroup(catalog, name, layerNames, styles, bbox)
+        group =  UnsavedLayerGroup(catalog, name, layerNames, styles, bbox, "SINGLE", "", name)
 
         explorer.run(self.parentCatalog().save,
                      "Create group '" + name + "'",
@@ -1165,7 +1165,7 @@ class GsStyleItem(GsTreeItem):
         layer = QgsVectorLayer(uri, "tmp", "memory")
         layer.loadSldStyle(sldfile)
         oldSld = getGsCompatibleSld(layer)[0]
-        config.iface.showLayerProperties(layer)
+        iface.showLayerProperties(layer)
         settings.setValue('/Projections/defaultBehaviour', prjSetting)
         newSld = getGsCompatibleSld(layer)[0]
         #TODO: we are not considering the possibility of the user selecting new svg markers,
@@ -1174,7 +1174,7 @@ class GsStyleItem(GsTreeItem):
             explorer.run(self.element.update_body, "Update style", [], newSld)
 
     def _showSldParsingError(self):
-        config.iface.messageBar().pushMessage("Warning", "Style is not stored as XML and cannot be edited",
+        iface.messageBar().pushMessage("Warning", "Style is not stored as XML and cannot be edited",
                                               level = Qgis.Warning,
                                               duration = 10)
 
@@ -1253,7 +1253,7 @@ class GsWorkspaceItem(GsTreeItem):
             self.addChild(storeItem)
 
         if nonAscii:
-            config.iface.messageBar().pushMessage("Warning", "Some datasores contain non-ascii characters and could not be loaded",
+            iface.messageBar().pushMessage("Warning", "Some datasores contain non-ascii characters and could not be loaded",
                                   level = Qgis.Warning,
                                   duration = 10)
 

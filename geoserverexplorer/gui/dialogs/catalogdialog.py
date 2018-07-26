@@ -190,7 +190,7 @@ class DefineCatalogDialog(QDialog):
             self.username = None
             self.password = None
             self.authid = self.certWidget.configId()
-            authtype = QgsAuthManager.instance().configAuthMethodKey(self.authid)
+            authtype = QgsApplication.authManager().configAuthMethodKey(self.authid)
             self.username = ''
             if not authtype or authtype == '':
                 QMessageBox.warning(self, "Authentication needed",

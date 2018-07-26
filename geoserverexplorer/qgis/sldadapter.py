@@ -248,6 +248,9 @@ def getGsCompatibleSld(layer):
 
 def getStyleAsSld(layer):
     if layer.type() == layer.VectorLayer:
+        print(layer.name())
+        print(layer.source())
+        print("1")
         document = QDomDocument()
         header = document.createProcessingInstruction( "xml", "version=\"1.0\" encoding=\"UTF-8\"" )
         document.appendChild( header )
@@ -266,7 +269,6 @@ def getStyleAsSld(layer):
 
         errorMsg = ""
         layer.writeSld(namedLayerNode, document, errorMsg)
-
         return str(document.toString(4))
     elif layer.type() == layer.RasterLayer:
         renderer = layer.renderer()

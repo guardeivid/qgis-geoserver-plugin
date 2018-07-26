@@ -25,8 +25,8 @@ __date__ = 'August 2016'
 from geoserver.catalog import Catalog, FailedRequestError
 from geoserver.support import build_url
 from geoserver.layer import Layer
-from geoserverexplorer import config
 from qgis.gui import *
+from qgis.utils import iface
 import json
 from xml.etree.ElementTree import XML
 from xml.parsers.expat import ExpatError
@@ -98,7 +98,7 @@ class BaseCatalog(Catalog):
                 noAscii = True
 
         if noAscii:
-            config.iface.messageBar().pushMessage("Warning", "Some layers contain non-ascii characters and could not be loaded",
+            iface.messageBar().pushMessage("Warning", "Some layers contain non-ascii characters and could not be loaded",
                       level = QgsMessageBar.WARNING,
                       duration = 10)
         return result

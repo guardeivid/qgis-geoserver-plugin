@@ -28,7 +28,7 @@ def getPemPkiPaths(authid, authtype):
 
     if authtype == "PKI-Paths":
         amcfg = QgsAuthMethodConfig()
-        QgsAuthManager.instance().loadAuthenticationConfig(authid, amcfg, True)
+        QgsApplication.authManager().loadAuthenticationConfig(authid, amcfg, True)
         if amcfg.isValid():
             bundle = QgsAuthCertUtils.certKeyBundleToPem(
                 amcfg.config('certpath'),
@@ -40,7 +40,7 @@ def getPemPkiPaths(authid, authtype):
                 keyfile = _saveTempPem(bundle[1])
     elif authtype == 'PKI-PKCS#12':
         amcfg = QgsAuthMethodConfig()
-        QgsAuthManager.instance().loadAuthenticationConfig(authid, amcfg, True)
+        QgsApplication.authManager().loadAuthenticationConfig(authid, amcfg, True)
         if amcfg.isValid():
             bundle = QgsAuthCertUtils.pkcs12BundleToPem(
                 amcfg.config('bundlepath'),
@@ -51,7 +51,7 @@ def getPemPkiPaths(authid, authtype):
                 keyfile = _saveTempPem(bundle[1])
     elif authtype == 'Identity-Cert':
         amcfg = QgsAuthMethodConfig()
-        QgsAuthManager.instance().loadAuthenticationConfig(authid, amcfg, True)
+        QgsApplication.authManager().loadAuthenticationConfig(authid, amcfg, True)
         if amcfg.isValid():
             bundle = QgsAuthManager.instance().getCertIdentityBundleToPem(
                 amcfg.config('certid'))

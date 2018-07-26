@@ -7,7 +7,7 @@ from builtins import map
 import unittest
 import os
 import sys
-from PyQt4.QtCore import *
+from qgis.PyQt.QtCore import *
 from qgis.core import *
 from qgis.utils import iface
 from geoserverexplorer.test.utils import PT1, safeName, PT2, WORKSPACE, WORKSPACEB, shapefile_and_friends
@@ -22,8 +22,8 @@ class DeleteTests(ExplorerIntegrationTest):
         # do workspace popuplation
         super(DeleteTests, cls).setUpClass()
 
-        cls.ws = cls.cat.get_workspace(WORKSPACE)
-        assert cls.ws is not None
+        cls.ws = cls.cat.get_workspaces(WORKSPACE)
+        assert len(cls.ws) > 0
 
         # load project
         projectFile = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "test.qgs")
@@ -87,8 +87,8 @@ class DeleteTests(ExplorerIntegrationTest):
         Test that when there are more than one layer with
         the same name they can be deleted
         """
-        wsb = self.catWrapper.catalog.get_workspace(WORKSPACEB)
-        self.assertIsNotNone(wsb)
+        wsb = self.catWrapper.catalog.get_workspaces(WORKSPACEB)
+        self.assertTrue(len(wsb) > 0)
 
         # Need to use prefixed names when retrieving
         pt1 = self.ws.name + ':' + PT1
@@ -125,8 +125,8 @@ class DeleteTests(ExplorerIntegrationTest):
         self.getWorkspacesItem().refreshContent(self.explorer)
         wsItem = self.getWorkspaceItem(wsname)
         self.assertIsNone(wsItem)
-        ws = self.cat.get_workspace(wsname)
-        self.assertIsNone(ws)
+        ws = self.cat.get_workspaces(wsname)
+        self.assertIsTrue(len(ws) > 0 )
 
 
     def testDeleteGWCLayer(self):

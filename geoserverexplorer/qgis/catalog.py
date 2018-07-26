@@ -107,7 +107,7 @@ class CatalogWrapper(object):
         used = {}
         allstyles = self.catalog.get_styles()
         for style in allstyles:
-            sld = style.sld_body.replace("<sld:Name>%s</sld:Name>" % style.name, "")
+            sld = style.sld_body.decode().replace("<sld:Name>%s</sld:Name>" % style.name, "")
             if sld in list(used.keys()):
                 used[sld].append(style)
             else:
@@ -192,8 +192,6 @@ class CatalogWrapper(object):
     def _publishPostgisLayer(self, layer, workspace, overwrite, name, storename=None):
         uri = QgsDataSourceURI(layer.dataProvider().dataSourceUri())
 
-
-
         conname = self.getConnectionNameFromLayer(layer)
         storename = xmlNameFixUp(storename or conname)
 
@@ -201,7 +199,6 @@ class CatalogWrapper(object):
             raise Exception("Database connection name is invalid XML and can "
                             "not be auto-fixed: {0} -> {1}"
                             .format(conname, storename))
-
 
         user = uri.username()
         passwd = uri.password()

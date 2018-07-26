@@ -292,6 +292,7 @@ class Catalog(object):
         elif isinstance(names, basestring):
             names = [s.strip() for s in names.split(',') if s.strip()]
 
+        print(stores)
         if stores and names:
             return ([store for store in stores if store.name in names])
 
@@ -977,7 +978,6 @@ class Catalog(object):
             body_href += "?raw=true"
 
         resp = self.http_request(body_href, method='put', data=data, headers=headers)
-        print(resp.status_code)
         if resp.status_code not in (200, 201, 202):
             FailedRequestError('Failed to create style {} : {}, {}'.format(name, resp.status_code, resp.text))
 

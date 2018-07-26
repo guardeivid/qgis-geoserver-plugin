@@ -195,7 +195,7 @@ class ExplorerTreeWidget(QTreeWidget):
         return ["application/x-qabstractitemmodeldatalist", self.QGIS_URI_MIME, self.QGIS_LEGEND_MIME]
 
     def mimeData(self, items):
-        mimeData = QTreeWidget.mimeData(self, items)
+        mimeData = QMimeData()#QTreeWidget.mimeData(self, items)
         encodedData = QByteArray()
         stream = QDataStream(encodedData, QIODevice.WriteOnly)
 

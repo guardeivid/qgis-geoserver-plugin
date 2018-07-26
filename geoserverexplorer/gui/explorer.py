@@ -11,8 +11,8 @@ from qgis.PyQt.QtWidgets import *
 import sip
 from qgis.core import *
 from qgis.gui import *
+from qgis.utils import iface
 from geoserverexplorer.gui.exploreritems import *
-from geoserverexplorer import config
 import traceback
 from geoserverexplorer.gui.explorertree import ExplorerTreeWidget
 from geoserverexplorer.qgis.utils import UserCanceledOperation
@@ -113,8 +113,7 @@ class GeoServerExplorer(QDockWidget):
         except UserCanceledOperation:
             pass
         except Exception as e:
-            s = str(e)            
-            self.setError(s + "\n\n<pre>" + traceback.format_exc() + "</pre>")
+            self.setError(str(e), traceback.format_exc())
             noerror = False
         finally:
             QApplication.restoreOverrideCursor()
@@ -124,7 +123,7 @@ class GeoServerExplorer(QDockWidget):
 
     def resetActivity(self):
         if self.progress is not None:
-            config.iface.messageBar().clearWidgets()
+            iface.messageBar().clearWidgets()
             self.isProgressVisible = False
             self.progress = None
             self.progressMaximum = 0
@@ -136,41 +135,30 @@ class GeoServerExplorer(QDockWidget):
     def setProgressMaximum(self, value, msg = ""):
         self.progressMaximum = value
         self.isProgressVisible = True
-        self.progressMessageBar = config.iface.messageBar().createMessage(msg)
+        self.progressMessageBar = iface.messageBar().createMessage(msg)
         self.progress = QProgressBar()
         self.progress.setMaximum(self.progressMaximum)
         self.progress.setAlignment(Qt.AlignLeft|Qt.AlignVCenter)
         self.progressMessageBar.layout().addWidget(self.progress)
-        config.iface.messageBar().pushWidget(self.progressMessageBar, Qgis.Info)
+        iface.messageBar().pushWidget(self.progressMessageBar, Qgis.Info)
 
     def setInfo(self, msg):
-        config.iface.messageBar().popWidget()
-        config.iface.messageBar().pushMessage("Info", msg,
+        iface.messageBar().popWidget()
+        iface.messageBar().pushMessage("Info", msg,
                                               level = Qgis.Info,
                                               duration = 10)
 
     def setWarning(self, msg):
-        config.iface.messageBar().pushMessage("Warning", msg,
+        iface.messageBar().pushMessage("Warning", msg,
                                               level = Qgis.Warning,
                                               duration = 10)
 
-    def setError(self, msg):
-        firstLine = msg.split("\n")[0]
-        if self.progressMaximum != 0:
-            QMessageBox.critical(self, "Error", firstLine)
-        self.resetActivity()
-        widget = config.iface.messageBar().createMessage("Error", firstLine)
-        showButton = QPushButton(widget)
-        showButton.setText("View more")
-        def showMore():
-            dlg = QgsMessageOutput.createMessageOutput()
-            dlg.setTitle('Error')
-            dlg.setMessage(msg, QgsMessageOutput.MessageHtml)
-            dlg.showMessage()
-        showButton.pressed.connect(showMore)
-        widget.layout().addWidget(showButton)
-        config.iface.messageBar().pushWidget(widget, Qgis.Critical,
-                                             duration = 10)
+    def setError(self, msg, trace=None):
+        iface.messageBar().clearWidgets()
+        iface.messageBar().pushMessage("Geoserver", msg, level=Qgis.Warning, duration=5)
+        if trace is not None:
+            QgsMessageLog.logMessage("{}:{}".format(msg, trace), level=Qgis.Critical)
+
 
     def setDescriptionWidget(self, widget = None):
         item = self.descriptionLayout.itemAt(0)

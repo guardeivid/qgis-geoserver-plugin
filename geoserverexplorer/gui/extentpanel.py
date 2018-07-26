@@ -5,8 +5,8 @@
 #
 from builtins import str
 from geoserverexplorer.gui.rectangletool import RectangleMapTool
-from geoserverexplorer import config
 from qgis.core import *
+from qgis.utils import iface
 from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import *
 
@@ -27,13 +27,13 @@ class ExtentSelectionPanel(QWidget):
         self.pushButton.clicked.connect(self.selectOnCanvas)
         self.horizontalLayout.addWidget(self.pushButton)
         self.setLayout(self.horizontalLayout)
-        canvas = config.iface.mapCanvas()
+        canvas = iface.mapCanvas()
         self.prevMapTool = canvas.mapTool()
         self.tool = RectangleMapTool(canvas)
         self.tool.rectangleCreated.connect(self.fillCoords)
 
     def selectOnCanvas(self):
-        canvas = config.iface.mapCanvas()
+        canvas = iface.mapCanvas()
         canvas.setMapTool(self.tool)
         self.dialog.showMinimized()
 
@@ -45,7 +45,7 @@ class ExtentSelectionPanel(QWidget):
         s = str(r.xMinimum()) + "," + str(r.xMaximum()) + "," + str(r.yMinimum()) + "," + str(r.yMaximum())
         self.text.setText(s)
         self.tool.reset()
-        canvas = config.iface.mapCanvas()
+        canvas = iface.mapCanvas()
         canvas.setMapTool(self.prevMapTool)
         self.dialog.showNormal()
         self.dialog.raise_()

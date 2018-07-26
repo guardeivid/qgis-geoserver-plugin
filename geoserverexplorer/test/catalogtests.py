@@ -12,8 +12,8 @@ from geoserverexplorer.qgis import layers, catalog
 from geoserverexplorer.qgis.sldadapter import adaptGsToQgs,\
     getGsCompatibleSld
 from qgis.core import *
-from qgis.utils import iface, QGis
-from PyQt4.QtCore import *
+from qgis.utils import iface
+from qgis.PyQt.QtCore import *
 from geoserverexplorer.test import utils
 from geoserverexplorer.test.utils import PT1, DEM, DEM2, PT1JSON, DEMASCII,\
     GEOLOGY_GROUP, GEOFORMS, LANDUSE, HOOK, WORKSPACE, WORKSPACEB
@@ -34,8 +34,7 @@ class CatalogTests(UtilsTestCase):
         cls.cat = utils.getGeoServerCatalog()
         utils.cleanCatalog(cls.cat.catalog)
         cls.cat.catalog.create_workspace(WORKSPACE, "http://geoserver.com")
-        cls.ws = cls.cat.catalog.get_workspace(WORKSPACE)
-        assert cls.ws is not None
+        cls.ws = cls.cat.catalog.get_workspaces(WORKSPACE)[0]        
         projectFile = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "test.qgs")
         iface.addProject(projectFile)
 
@@ -60,8 +59,7 @@ class CatalogTests(UtilsTestCase):
         the same name they can be both added to QGIS
         """
         self.cat.catalog.create_workspace(WORKSPACEB, "http://testb.com")
-        wsb = self.cat.catalog.get_workspace(WORKSPACEB)
-        self.assertIsNotNone(wsb)
+        wsb = self.cat.catalog.get_workspaces(WORKSPACEB)[0]
 
         # Need to use prefixed names when retrieving
         pt1 = self.ws.name + ':' + PT1
